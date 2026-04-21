@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CycleStay — Matching Prototype</title>
+<link rel="stylesheet" href="styles.css?v=1" />
+</head>
+<body>
+<header>
+  <h1>CycleStay</h1>
+  <p class="sub">Multi-way sublease exchange — matching engine prototype</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="match">Generate &amp; Match</button>
+  <button class="tab" data-tab="eval">Evaluation</button>
+  <button class="tab" data-tab="data">Data</button>
+</nav>
+
+<main>
+
+<section id="tab-match" class="tab-panel active">
+  <div class="panel controls">
+    <h2>Parameters</h2>
+    <div class="grid">
+      <label>Profiles <input id="n" type="number" value="200" min="10" max="1000" /></label>
+      <label>Seed <input id="seed" type="number" value="42" /></label>
+      <label>Skew (0=balanced, 1=heavy) <input id="skew" type="range" min="0" max="1" step="0.05" value="0.5" /><span id="skew-v">0.50</span></label>
+      <label>Date overlap weight <input id="w-date" type="range" min="0" max="1" step="0.05" value="0.5" /><span id="w-date-v">0.50</span></label>
+      <label>Unit type weight <input id="w-unit" type="range" min="0" max="1" step="0.05" value="0.3" /><span id="w-unit-v">0.30</span></label>
+      <label>Constraint weight <input id="w-con" type="range" min="0" max="1" step="0.05" value="0.2" /><span id="w-con-v">0.20</span></label>
+      <label>Max cycle length <input id="cap" type="number" value="4" min="2" max="5" /></label>
+      <label>Min date overlap (days) <input id="minov" type="number" value="42" min="0" max="90" /></label>
+    </div>
+    <div class="actions">
+      <button id="run">Generate &amp; Match</button>
+      <span id="summary" class="muted"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Cycles found</h2>
+    <div id="cycles" class="results"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Bilateral fallback (top 20)</h2>
+    <div id="bilateral" class="results"></div>
+  </div>
+</section>
+
+<section id="tab-eval" class="tab-panel">
+  <div class="panel">
+    <h2>Scenario evaluation</h2>
+    <p class="muted">Runs balanced, skewed, and sparse synthetic markets with the same parameters and reports match rates and cycle quality.</p>
+    <div class="actions">
+      <button id="run-eval">Run evaluation</button>
+    </div>
+    <div id="eval-results"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Dropout robustness</h2>
+    <p class="muted">Randomly removes 10% of matched participants and counts how many cycles collapse vs. repair via a single-node substitute from the unmatched pool.</p>
+    <div id="dropout-results"></div>
+  </div>
+</section>
+
+<section id="tab-data" class="tab-panel">
+  <div class="panel">
+    <h2>Synthetic profiles</h2>
+    <div class="actions">
+      <button id="download-csv">Download CSV</button>
+      <span class="muted">Re-generate from the Match tab to refresh.</span>
+    </div>
+    <div id="data-table" class="table-wrap"></div>
+  </div>
+</section>
+
+</main>
+
+<script src="data.js?v=1"></script>
+<script src="matcher.js?v=1"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>
