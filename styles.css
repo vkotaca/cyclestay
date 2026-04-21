@@ -293,6 +293,61 @@ input[type="number"], input[type="range"] {
 input[type="number"]:focus, input[type="range"]:focus { outline: none; border-color: var(--cardinal); }
 input[type="range"] { padding: 0; accent-color: var(--cardinal); }
 input[type="checkbox"] { accent-color: var(--cardinal); }
+
+.tip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px; height: 14px;
+  color: var(--cool-grey);
+  font-size: 12px;
+  font-weight: 400;
+  cursor: help;
+  margin-left: 2px;
+  position: relative;
+  font-family: "Source Sans Pro", sans-serif;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.tip:hover { color: var(--cardinal); }
+.tip::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--black);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  width: 260px;
+  white-space: normal;
+  text-align: left;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 50;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+.tip::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--black);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 50;
+}
+.tip:hover::after, .tip:hover::before { opacity: 1; }
 label span {
   color: var(--black);
   font-size: 12px;

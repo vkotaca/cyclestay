@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CycleStay — Multi-Way Sublease Exchange</title>
-<link rel="stylesheet" href="styles.css?v=4" />
+<link rel="stylesheet" href="styles.css?v=5" />
 </head>
 <body>
 
@@ -81,15 +81,15 @@
   <div class="panel controls">
     <h2>Parameters</h2>
     <div class="grid">
-      <label>Profiles <input id="n" type="number" value="200" min="10" max="1000" /></label>
-      <label>Seed <input id="seed" type="number" value="42" /></label>
-      <label>Skew (0=balanced, 1=realistic) <input id="skew" type="range" min="0" max="1" step="0.05" value="0.5" /><span id="skew-v">0.50</span></label>
-      <label>Date overlap weight <input id="w-date" type="range" min="0" max="1" step="0.05" value="0.5" /><span id="w-date-v">0.50</span></label>
-      <label>Unit type weight <input id="w-unit" type="range" min="0" max="1" step="0.05" value="0.3" /><span id="w-unit-v">0.30</span></label>
-      <label>Constraint weight <input id="w-con" type="range" min="0" max="1" step="0.05" value="0.2" /><span id="w-con-v">0.20</span></label>
-      <label>Max cycle length <input id="cap" type="number" value="4" min="2" max="5" /></label>
-      <label>Min date overlap (days) <input id="minov" type="number" value="42" min="0" max="90" /></label>
-      <label class="checkbox"><input id="optimize" type="checkbox" /> Use near-optimal selection (local search)</label>
+      <label>Profiles <span class="tip" data-tip="How many synthetic students to generate. 200 is a realistic summer intern cohort. Bigger = more potential matches, slower to run.">&#9432;</span><input id="n" type="number" value="200" min="10" max="1000" /></label>
+      <input id="seed" type="hidden" value="42" />
+      <label>Skew (0=balanced, 1=realistic) <span class="tip" data-tip="How concentrated the city flows are. 0 = toy world where every city sends/receives equally. 1 = realistic (NYC and SF dominate, Miami small). Higher skew actually makes cycle-finding work BETTER because concentrated flows create more overlapping paths.">&#9432;</span><input id="skew" type="range" min="0" max="1" step="0.05" value="0.5" /><span id="skew-v">0.50</span></label>
+      <label>Date overlap weight <span class="tip" data-tip="How much the matcher cares about trip dates lining up. Most important weight — no point matching if someone needs Jul-Aug and the place is free May-Jun.">&#9432;</span><input id="w-date" type="range" min="0" max="1" step="0.05" value="0.5" /><span id="w-date-v">0.50</span></label>
+      <label>Unit type weight <span class="tip" data-tip="How much the matcher cares about unit type. Studio-for-studio scores 1.0; fuzzy matches (studio-for-1BR if acceptable) score 0.75.">&#9432;</span><input id="w-unit" type="range" min="0" max="1" step="0.05" value="0.3" /><span id="w-unit-v">0.30</span></label>
+      <label>Constraint weight <span class="tip" data-tip="How much nice-to-haves (parking, transit, private room) boost the score beyond hard requirements. Hard requirements are always enforced regardless of this weight.">&#9432;</span><input id="w-con" type="range" min="0" max="1" step="0.05" value="0.2" /><span id="w-con-v">0.20</span></label>
+      <label>Max cycle length <span class="tip" data-tip="Longest swap chain to look for. 2 = pairs only (bilateral). 3 = triangles (SF-NYC-Austin-SF). 4 = four-way swaps (proposal's cap). Larger cycles match more people but are harder to coordinate in real life.">&#9432;</span><input id="cap" type="number" value="4" min="2" max="5" /></label>
+      <label>Min date overlap (days) <span class="tip" data-tip="Reject matches where the two students' trips overlap fewer than this many days. 42 = six weeks, filters out half-summer mismatches. Lower = more matches but some will be low-quality.">&#9432;</span><input id="minov" type="number" value="42" min="0" max="90" /></label>
+      <label class="checkbox"><input id="optimize" type="checkbox" /> Use near-optimal selection (local search)<span class="tip" data-tip="When unchecked: greedy selector (fast). When checked: runs 60 randomized restarts to find a better combination of cycles. Gains ~1-3pp match rate at the cost of ~500ms.">&#9432;</span></label>
     </div>
     <div class="actions">
       <button id="run">Generate &amp; Match</button>
