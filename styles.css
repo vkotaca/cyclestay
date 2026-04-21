@@ -696,3 +696,98 @@ tr:hover td { background: var(--surface-2); }
 }
 .swap-row:hover { background: var(--cardinal); color: #fff; border-color: var(--cardinal); }
 .swap-row:hover .muted, .swap-row:hover .score { color: rgba(255,255,255,0.9); }
+
+/* ---------- Mobile ---------- */
+@media (max-width: 720px) {
+  body { font-size: 13px; }
+
+  /* Hero */
+  .hero-landing { padding: 44px 20px 52px; }
+  .hero-title { font-size: 44px; }
+  .hero-tagline { font-size: 18px; margin-bottom: 16px; }
+  .hero-body { font-size: 14px; }
+  .hero-cta { flex-direction: column; align-items: stretch; }
+  .hero-cta button { width: 100%; }
+  .hero-mini { display: flex; justify-content: center; }
+  .hero-anim { width: 260px; }
+
+  header { padding: 16px 20px 12px; }
+  header h1 { font-size: 20px; }
+
+  /* Tabs: horizontal scroll if they overflow */
+  .tabs { padding: 0 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tab { padding: 10px 14px; flex: 0 0 auto; font-size: 12px; }
+
+  main { padding: 16px 16px 48px; }
+  .panel { padding: 16px; margin-bottom: 14px; border-radius: 3px; }
+  .panel h2 { font-size: 14px; }
+
+  /* Savings hero card stacks */
+  .hero {
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+  }
+  .hero-value { font-size: 36px; }
+  .hero-side { gap: 12px; }
+  .hero-stat { min-width: 90px; flex: 1; }
+  .hero-stat-value { font-size: 18px; }
+
+  /* Personas stack */
+  .persona-row { flex-direction: column; }
+  .persona { min-width: 0; }
+
+  /* Params: one column */
+  .grid { grid-template-columns: 1fr; gap: 14px; }
+  label:has(input[type="range"]) { gap: 4px; }
+  label span { margin-left: 0; }
+
+  /* Action buttons stack full-width */
+  .actions { flex-direction: column; align-items: stretch; }
+  .actions button { width: 100%; }
+  .actions .muted { text-align: center; }
+
+  .spark-svg { width: 100%; height: auto; }
+
+  /* Bars: tighter columns */
+  .bar-label { width: 100px; font-size: 11px; }
+  .bar-val { width: 72px; font-size: 11px; }
+
+  /* Cycles / cards */
+  .cycle, .pair { font-size: 11px; padding: 10px; }
+  .chain { line-height: 1.7; word-break: break-word; }
+  .cards-row { grid-template-columns: 1fr; }
+
+  /* Tables scroll horizontally */
+  .table-wrap { max-height: 360px; }
+  table { font-size: 11px; }
+  th, td { padding: 5px 8px; }
+
+  /* Viz */
+  .two-col { grid-template-columns: 1fr; gap: 14px; }
+  .map-svg { width: 100%; }
+  .cycle-picker { gap: 4px; }
+  .cycle-chip { font-size: 10px; padding: 5px 8px; }
+
+  /* Metrics cards */
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .metric-value { font-size: 16px; }
+
+  /* Tour: shrink tooltip for phones */
+  .tour-tooltip {
+    max-width: calc(100vw - 32px);
+    left: 16px !important;
+    right: 16px;
+  }
+  .tour-nav { flex-wrap: wrap; }
+
+  /* Tooltip bubble: keep on screen */
+  .tip::after { width: 220px; left: auto; right: 0; transform: none; }
+  .tip::before { left: auto; right: 14px; transform: none; }
+
+  /* Modal */
+  .modal { padding: 12px; }
+  .modal-box { max-height: 90vh; }
+  .swap-list { padding: 8px 12px; }
+  .swap-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+}
