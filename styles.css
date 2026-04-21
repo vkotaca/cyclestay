@@ -24,11 +24,16 @@ html, body {
 
 /* Hero landing */
 .hero-landing {
-  background: linear-gradient(135deg, #8C1515 0%, #5C0000 100%);
+  position: relative;
+  background:
+    linear-gradient(135deg, rgba(140, 21, 21, 0.82) 0%, rgba(60, 0, 0, 0.88) 100%),
+    url("Assets/MBA-ClassOf24-1630.jpeg.avif") center/cover no-repeat;
   color: #fff;
-  padding: 60px 40px 70px;
+  padding: 80px 40px 90px;
   border-bottom: 4px solid var(--cardinal-dark);
 }
+.hero-inner { position: relative; z-index: 1; }
+.hero-body { text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 .hero-inner { max-width: 960px; margin: 0 auto; }
 .hero-kicker {
   font-size: 11px;
