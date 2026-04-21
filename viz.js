@@ -1,0 +1,369 @@
+// Visualizations for CycleStay: US map with flow arcs, sankey, heatmap,
+// sparkline, cycle cards with Gantt bars.
+
+const CITY_COORDS = {
+  SF:      { lon: -122.4, lat: 37.8, label: "San Francisco" },
+  LA:      { lon: -118.2, lat: 34.1, label: "Los Angeles" },
+  Seattle: { lon: -122.3, lat: 47.6, label: "Seattle" },
+  Austin:  { lon:  -97.7, lat: 30.3, label: "Austin" },
+  Chicago: { lon:  -87.6, lat: 41.9, label: "Chicago" },
+  Miami:   { lon:  -80.2, lat: 25.8, label: "Miami" },
+  DC:      { lon:  -77.0, lat: 38.9, label: "Washington DC" },
+  NYC:     { lon:  -74.0, lat: 40.7, label: "New York" },
+  Boston:  { lon:  -71.1, lat: 42.4, label: "Boston" },
+};
+
+// Simplified US outline (low-poly). Covers contiguous US only.
+const US_PATH = "M 158 243 L 176 233 L 197 228 L 217 229 L 226 225 L 248 225 L 263 233 L 278 241 L 295 244 L 314 247 L 329 249 L 340 252 L 355 255 L 373 259 L 392 263 L 411 266 L 432 268 L 455 269 L 478 268 L 496 265 L 514 259 L 530 252 L 547 242 L 561 234 L 570 227 L 575 213 L 580 196 L 588 183 L 598 175 L 612 169 L 625 169 L 636 172 L 648 181 L 658 192 L 665 204 L 670 218 L 672 232 L 670 247 L 665 262 L 658 276 L 650 289 L 640 301 L 628 311 L 615 318 L 598 322 L 580 324 L 560 322 L 540 318 L 518 314 L 495 312 L 474 312 L 456 317 L 440 325 L 426 336 L 415 349 L 408 364 L 404 380 L 401 397 L 398 412 L 392 420 L 382 424 L 371 420 L 360 413 L 352 405 L 347 395 L 342 385 L 335 375 L 324 365 L 310 358 L 293 353 L 273 352 L 252 354 L 232 357 L 212 358 L 192 354 L 172 346 L 154 333 L 140 318 L 130 302 L 125 285 L 124 268 L 128 252 L 140 243 Z";
+
+function projectLonLat(lon, lat, width, height) {
+  // Bounds for contiguous US with padding.
+  const lonMin = -125, lonMax = -66;
+  const latMin = 24, latMax = 50;
+  const x = ((lon - lonMin) / (lonMax - lonMin)) * width;
+  const y = ((latMax - lat) / (latMax - latMin)) * height;
+  return { x, y };
+}
+
+function cityXY(city, width, height) {
+  const c = CITY_COORDS[city];
+  return projectLonLat(c.lon, c.lat, width, height);
+}
+
+// Build an SVG quadratic arc between two points with perpendicular bow.
+function arcPath(x1, y1, x2, y2, bow = 0.2) {
+  const mx = (x1 + x2) / 2;
+  const my = (y1 + y2) / 2;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy);
+  const nx = -dy / len;
+  const ny = dx / len;
+  const cx = mx + nx * len * bow;
+  const cy = my + ny * len * bow;
+  return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
+}
+
+function renderMap(container, result, opts = {}) {
+  const width = 900, height = 500;
+  const WIDTH = width, HEIGHT = height;
+  const padX = 40, padY = 20;
+  const mapW = width - padX * 2;
+  const mapH = height - padY * 2;
+
+  // Aggregate flows: (origin->dest) counts for matched-in-cycles and unmatched.
+  const flowMatched = new Map();
+  const flowUnmatched = new Map();
+  const key = (a, b) => `${a}|${b}`;
+
+  for (const p of result.profiles) {
+    const k = key(p.origin, p.dest);
+    if (result.matchedSet.has(p.id)) {
+      flowMatched.set(k, (flowMatched.get(k) || 0) + 1);
+    } else {
+      flowUnmatched.set(k, (flowUnmatched.get(k) || 0) + 1);
+    }
+  }
+
+  const maxFlow = Math.max(1, ...flowMatched.values(), ...flowUnmatched.values());
+
+  // Proportional arc stroke width.
+  function sw(count) { return 0.8 + (count / maxFlow) * 5; }
+
+  let svg = `<svg viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg" class="map-svg">`;
+  // US outline translated into our viewport. The path above is in its own coords;
+  // we approximate a bounding transform. Instead, render a light rectangular backdrop
+  // (the outline is decorative but would need careful registration — skip for clarity).
+  svg += `<rect x="0" y="0" width="${WIDTH}" height="${HEIGHT}" fill="#FAFAF7"/>`;
+
+  // Faint lat/lon grid
+  for (let lon = -120; lon <= -70; lon += 10) {
+    const { x } = projectLonLat(lon, 40, WIDTH, HEIGHT);
+    svg += `<line x1="${x}" y1="0" x2="${x}" y2="${HEIGHT}" stroke="#EEEEE8" stroke-width="1"/>`;
+  }
+  for (let lat = 25; lat <= 50; lat += 5) {
+    const { y } = projectLonLat(-95, lat, WIDTH, HEIGHT);
+    svg += `<line x1="0" y1="${y}" x2="${WIDTH}" y2="${y}" stroke="#EEEEE8" stroke-width="1"/>`;
+  }
+
+  // Unmatched flows (grey, behind)
+  for (const [k, count] of flowUnmatched) {
+    const [a, b] = k.split("|");
+    const pa = cityXY(a, WIDTH, HEIGHT);
+    const pb = cityXY(b, WIDTH, HEIGHT);
+    svg += `<path d="${arcPath(pa.x, pa.y, pb.x, pb.y)}" fill="none" stroke="#C8C8C0" stroke-width="${sw(count)}" opacity="0.5" />`;
+  }
+  // Matched flows (cardinal, in front)
+  for (const [k, count] of flowMatched) {
+    const [a, b] = k.split("|");
+    const pa = cityXY(a, WIDTH, HEIGHT);
+    const pb = cityXY(b, WIDTH, HEIGHT);
+    svg += `<path d="${arcPath(pa.x, pa.y, pb.x, pb.y)}" fill="none" stroke="#8C1515" stroke-width="${sw(count)}" opacity="0.75" />`;
+  }
+
+  // City pins
+  for (const city of Object.keys(CITY_COORDS)) {
+    const { x, y } = cityXY(city, WIDTH, HEIGHT);
+    svg += `<circle cx="${x}" cy="${y}" r="6" fill="#820000" stroke="#fff" stroke-width="2"/>`;
+    const c = CITY_COORDS[city];
+    const labelY = y - 12;
+    svg += `<text x="${x}" y="${labelY}" text-anchor="middle" font-family="Source Sans Pro, sans-serif" font-size="12" font-weight="700" fill="#2E2D29">${city}</text>`;
+  }
+
+  // Legend
+  svg += `<g transform="translate(20, ${HEIGHT - 56})">
+    <rect x="0" y="0" width="190" height="46" fill="#fff" stroke="#DADAD4" rx="3"/>
+    <line x1="12" y1="16" x2="40" y2="16" stroke="#8C1515" stroke-width="3"/>
+    <text x="48" y="20" font-family="Source Sans Pro" font-size="11" fill="#2E2D29">Matched flow</text>
+    <line x1="12" y1="34" x2="40" y2="34" stroke="#C8C8C0" stroke-width="3"/>
+    <text x="48" y="38" font-family="Source Sans Pro" font-size="11" fill="#2E2D29">Unmatched demand</text>
+  </g>`;
+
+  svg += `</svg>`;
+  container.innerHTML = svg;
+}
+
+// Animate a cycle by drawing its arcs in sequence on top of the map.
+function animateCycle(container, result, cycle) {
+  renderMap(container, result);
+  const svg = container.querySelector("svg");
+  if (!svg) return;
+  const width = 900, height = 500;
+  const map = new Map(result.profiles.map(p => [p.id, p]));
+  const points = cycle.nodes.map(id => {
+    const p = map.get(id);
+    return { id, origin: p.origin, dest: p.dest, name: p.name };
+  });
+  // Cycle edges: for each i, student i travels from origin->dest; and the edge
+  // i -> i+1 means student i's origin === student i+1's dest (structurally).
+  // For a clean animation, draw arcs from node origin to node dest sequentially,
+  // highlighting the student's move around the cycle.
+  for (let i = 0; i < points.length; i++) {
+    const s = points[i];
+    const pa = cityXY(s.origin, width, height);
+    const pb = cityXY(s.dest, width, height);
+    const d = arcPath(pa.x, pa.y, pb.x, pb.y, 0.25);
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "#820000");
+    path.setAttribute("stroke-width", "4");
+    path.setAttribute("stroke-linecap", "round");
+    path.setAttribute("opacity", "0.95");
+    svg.appendChild(path);
+    const len = path.getTotalLength();
+    path.style.strokeDasharray = len;
+    path.style.strokeDashoffset = len;
+    path.style.transition = `stroke-dashoffset 700ms ease-in-out`;
+    path.style.transitionDelay = `${i * 750}ms`;
+    requestAnimationFrame(() => { path.style.strokeDashoffset = 0; });
+
+    // Travelling dot
+    const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    dot.setAttribute("r", "5");
+    dot.setAttribute("fill", "#8C1515");
+    dot.setAttribute("stroke", "#fff");
+    dot.setAttribute("stroke-width", "2");
+    svg.appendChild(dot);
+    const animateMotion = document.createElementNS("http://www.w3.org/2000/svg", "animateMotion");
+    animateMotion.setAttribute("dur", "700ms");
+    animateMotion.setAttribute("begin", `${i * 750}ms`);
+    animateMotion.setAttribute("fill", "freeze");
+    animateMotion.setAttribute("path", d);
+    dot.appendChild(animateMotion);
+    animateMotion.beginElement?.();
+  }
+}
+
+function renderSankey(container, result) {
+  const WIDTH = 900, HEIGHT = 500;
+  const cities = Object.keys(CITY_COORDS);
+  const leftX = 60, rightX = WIDTH - 60;
+  const colGap = 4;
+
+  // Compute matched out/in counts per city
+  const outCount = Object.fromEntries(cities.map(c => [c, 0]));
+  const inCount = Object.fromEntries(cities.map(c => [c, 0]));
+  const flow = {}; // flow[origin][dest] = count
+  for (const c of cities) flow[c] = Object.fromEntries(cities.map(x => [x, 0]));
+
+  for (const p of result.profiles) {
+    if (!result.matchedSet.has(p.id)) continue;
+    outCount[p.origin]++;
+    inCount[p.dest]++;
+    flow[p.origin][p.dest]++;
+  }
+
+  const totalOut = cities.reduce((s, c) => s + outCount[c], 0) || 1;
+  const usableH = HEIGHT - 80 - (cities.length - 1) * colGap;
+
+  // Precompute y positions (height proportional to count) on both sides
+  function layout(counts) {
+    const total = cities.reduce((s, c) => s + counts[c], 0) || 1;
+    const positions = {};
+    let y = 40;
+    for (const c of cities) {
+      const h = Math.max(6, (counts[c] / total) * usableH);
+      positions[c] = { y, h };
+      y += h + colGap;
+    }
+    return positions;
+  }
+  const L = layout(outCount);
+  const R = layout(inCount);
+
+  let svg = `<svg viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg" class="map-svg">`;
+  svg += `<rect width="${WIDTH}" height="${HEIGHT}" fill="#FAFAF7"/>`;
+
+  // Draw ribbons. For each origin, split its rect vertically by destination shares.
+  for (const o of cities) {
+    const oRect = L[o];
+    if (outCount[o] === 0) continue;
+    let offset = 0;
+    for (const d of cities) {
+      const f = flow[o][d];
+      if (!f) continue;
+      const ribbonH = (f / outCount[o]) * oRect.h;
+      const y1Top = oRect.y + offset;
+      const y1Bot = y1Top + ribbonH;
+      offset += ribbonH;
+
+      const dRect = R[d];
+      // Determine right-side position proportional to d's inflow consumed by this origin.
+      // Track how much of d has been filled so far via `consumed` map.
+      if (!R[d].consumed) R[d].consumed = 0;
+      const ribbonH2 = (f / inCount[d]) * dRect.h;
+      const y2Top = dRect.y + R[d].consumed;
+      const y2Bot = y2Top + ribbonH2;
+      R[d].consumed += ribbonH2;
+
+      const cx1 = leftX + 20 + (rightX - leftX - 40) / 2;
+      const path = `M ${leftX + 20} ${y1Top}
+                    C ${cx1} ${y1Top}, ${cx1} ${y2Top}, ${rightX - 20} ${y2Top}
+                    L ${rightX - 20} ${y2Bot}
+                    C ${cx1} ${y2Bot}, ${cx1} ${y1Bot}, ${leftX + 20} ${y1Bot} Z`;
+      svg += `<path d="${path}" fill="#8C1515" opacity="${0.15 + 0.5 * (f / totalOut)}" stroke="none"/>`;
+    }
+  }
+
+  // Draw origin rects
+  for (const c of cities) {
+    svg += `<rect x="${leftX}" y="${L[c].y}" width="20" height="${L[c].h}" fill="#820000"/>`;
+    svg += `<text x="${leftX - 8}" y="${L[c].y + L[c].h / 2 + 4}" text-anchor="end" font-family="Source Sans Pro" font-size="12" font-weight="600" fill="#2E2D29">${c} (${outCount[c]})</text>`;
+  }
+  for (const c of cities) {
+    svg += `<rect x="${rightX - 20}" y="${R[c].y}" width="20" height="${R[c].h}" fill="#820000"/>`;
+    svg += `<text x="${rightX + 8}" y="${R[c].y + R[c].h / 2 + 4}" text-anchor="start" font-family="Source Sans Pro" font-size="12" font-weight="600" fill="#2E2D29">${c} (${inCount[c]})</text>`;
+  }
+  svg += `<text x="${leftX}" y="22" text-anchor="start" font-family="Source Sans Pro" font-size="12" font-weight="700" fill="#53565A" letter-spacing="0.05em">LEAVING</text>`;
+  svg += `<text x="${rightX}" y="22" text-anchor="end" font-family="Source Sans Pro" font-size="12" font-weight="700" fill="#53565A" letter-spacing="0.05em">ARRIVING</text>`;
+  svg += `</svg>`;
+  container.innerHTML = svg;
+}
+
+function renderHeatmap(container, result) {
+  const cities = Object.keys(CITY_COORDS);
+  const W = 520, H = 520;
+  const padL = 70, padT = 70;
+  const cell = (W - padL - 10) / cities.length;
+
+  // Count matched flow per (origin,dest)
+  const counts = {};
+  let max = 0;
+  for (const p of result.profiles) {
+    const k = `${p.origin}|${p.dest}`;
+    if (!counts[k]) counts[k] = { matched: 0, total: 0 };
+    counts[k].total++;
+    if (result.matchedSet.has(p.id)) counts[k].matched++;
+  }
+  for (const k in counts) max = Math.max(max, counts[k].matched);
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="map-svg">`;
+  svg += `<rect width="${W}" height="${H}" fill="#FAFAF7"/>`;
+
+  // Column headers (destinations)
+  for (let i = 0; i < cities.length; i++) {
+    const x = padL + i * cell + cell / 2;
+    svg += `<text x="${x}" y="${padT - 10}" text-anchor="middle" font-family="Source Sans Pro" font-size="11" font-weight="600" fill="#53565A">${cities[i]}</text>`;
+  }
+  // Row headers (origins)
+  for (let j = 0; j < cities.length; j++) {
+    const y = padT + j * cell + cell / 2 + 4;
+    svg += `<text x="${padL - 8}" y="${y}" text-anchor="end" font-family="Source Sans Pro" font-size="11" font-weight="600" fill="#53565A">${cities[j]}</text>`;
+  }
+  // Cells
+  for (let j = 0; j < cities.length; j++) {
+    for (let i = 0; i < cities.length; i++) {
+      const k = `${cities[j]}|${cities[i]}`;
+      const c = counts[k] || { matched: 0, total: 0 };
+      const x = padL + i * cell;
+      const y = padT + j * cell;
+      if (cities[i] === cities[j]) {
+        svg += `<rect x="${x}" y="${y}" width="${cell - 2}" height="${cell - 2}" fill="#EEEEE8"/>`;
+      } else {
+        const intensity = max ? c.matched / max : 0;
+        const alpha = intensity === 0 ? 0.04 : 0.15 + intensity * 0.85;
+        svg += `<rect x="${x}" y="${y}" width="${cell - 2}" height="${cell - 2}" fill="#8C1515" opacity="${alpha}"/>`;
+        if (c.matched > 0) {
+          const tcolor = intensity > 0.5 ? "#fff" : "#2E2D29";
+          svg += `<text x="${x + cell / 2}" y="${y + cell / 2 + 4}" text-anchor="middle" font-family="Source Sans Pro" font-size="11" font-weight="600" fill="${tcolor}">${c.matched}</text>`;
+        }
+      }
+    }
+  }
+  svg += `<text x="${padL + (W - padL - 10) / 2}" y="${padT - 32}" text-anchor="middle" font-family="Source Sans Pro" font-size="11" font-weight="700" fill="#53565A" letter-spacing="0.05em">DESTINATION</text>`;
+  svg += `<text x="18" y="${padT + (H - padT - 10) / 2}" text-anchor="middle" font-family="Source Sans Pro" font-size="11" font-weight="700" fill="#53565A" letter-spacing="0.05em" transform="rotate(-90 18 ${padT + (H - padT - 10) / 2})">ORIGIN</text>`;
+  svg += `</svg>`;
+  container.innerHTML = svg;
+}
+
+function renderSparkline(container, points) {
+  const W = 260, H = 60, padL = 26, padR = 8, padT = 6, padB = 18;
+  const xs = points.map(p => p.x);
+  const ys = points.map(p => p.y);
+  const xMin = Math.min(...xs), xMax = Math.max(...xs);
+  const yMax = 1, yMin = 0;
+  const iw = W - padL - padR, ih = H - padT - padB;
+  function tx(x) { return padL + ((x - xMin) / (xMax - xMin || 1)) * iw; }
+  function ty(y) { return padT + (1 - (y - yMin) / (yMax - yMin)) * ih; }
+  const d = points.map((p, i) => `${i === 0 ? "M" : "L"} ${tx(p.x).toFixed(1)} ${ty(p.y).toFixed(1)}`).join(" ");
+  const area = d + ` L ${tx(xMax)} ${padT + ih} L ${tx(xMin)} ${padT + ih} Z`;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" class="spark-svg">`;
+  svg += `<rect width="${W}" height="${H}" fill="#FAFAF7"/>`;
+  svg += `<path d="${area}" fill="#8C1515" opacity="0.12"/>`;
+  svg += `<path d="${d}" fill="none" stroke="#8C1515" stroke-width="1.75"/>`;
+  svg += `<text x="2" y="${padT + 8}" font-family="Source Sans Pro" font-size="9" fill="#53565A">100%</text>`;
+  svg += `<text x="2" y="${H - 4}" font-family="Source Sans Pro" font-size="9" fill="#53565A">0%</text>`;
+  svg += `<text x="${tx(xMin)}" y="${H - 4}" font-family="Source Sans Pro" font-size="9" fill="#53565A" text-anchor="start">balanced</text>`;
+  svg += `<text x="${tx(xMax)}" y="${H - 4}" font-family="Source Sans Pro" font-size="9" fill="#53565A" text-anchor="end">skewed</text>`;
+  svg += `</svg>`;
+  container.innerHTML = svg;
+}
+
+function renderCycleCards(profiles, nodes) {
+  const map = new Map(profiles.map(p => [p.id, p]));
+  const ps = nodes.map(n => map.get(n));
+  const allStarts = ps.map(p => p.start.getTime());
+  const allEnds = ps.map(p => p.end.getTime());
+  const minT = Math.min(...allStarts);
+  const maxT = Math.max(...allEnds);
+  const span = maxT - minT || 1;
+  return `<div class="cards-row">${ps.map(p => {
+    const sPct = ((p.start.getTime() - minT) / span) * 100;
+    const wPct = ((p.end.getTime() - p.start.getTime()) / span) * 100;
+    const initials = p.name.split(" ").map(w => w[0]).join("");
+    const icon = p.offered.unit === "room" ? "\u25A1" : (p.offered.unit === "studio" ? "\u25AB" : "\u25A3");
+    return `<div class="card">
+      <div class="card-head">
+        <div class="avatar">${initials}</div>
+        <div class="card-name">${p.name}</div>
+      </div>
+      <div class="card-row"><span class="card-lbl">Route</span>${p.origin} <span class="arrow">\u2192</span> ${p.dest}</div>
+      <div class="card-row"><span class="card-lbl">Unit</span>${icon} ${p.offered.unit}</div>
+      <div class="card-row"><span class="card-lbl">Dates</span>${p.start.toISOString().slice(5,10)} – ${p.end.toISOString().slice(5,10)}</div>
+      <div class="gantt"><div class="gantt-bar" style="left:${sPct}%; width:${wPct}%"></div></div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+window.CS_VIZ = { renderMap, animateCycle, renderSankey, renderHeatmap, renderSparkline, renderCycleCards, CITY_COORDS };

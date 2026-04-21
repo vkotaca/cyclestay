@@ -1,10 +1,21 @@
 // UI glue for CycleStay prototype.
+(function () {
+"use strict";
 
-const { generateProfiles, profilesToCSV, CITIES, fmtDate } = window.CS_DATA;
-const { runMatcher, simulateDropout } = window.CS_MATCH;
+if (!window.CS_DATA || !window.CS_MATCH || !window.CS_VIZ) {
+  console.error("CycleStay: required modules missing", {
+    CS_DATA: !!window.CS_DATA, CS_MATCH: !!window.CS_MATCH, CS_VIZ: !!window.CS_VIZ,
+  });
+  return;
+}
+
+const { generateProfiles, profilesToCSV, fmtDate } = window.CS_DATA;
+const { runMatcher, runBilateralOnly, simulateDropout } = window.CS_MATCH;
+const { renderMap, animateCycle, renderSankey, renderHeatmap, renderSparkline, renderCycleCards } = window.CS_VIZ;
 
 let lastResult = null;
 let lastProfiles = null;
+let lastBilateralOnly = null;
 
 // Tabs
 document.querySelectorAll(".tab").forEach(btn => {
@@ -16,10 +27,11 @@ document.querySelectorAll(".tab").forEach(btn => {
   });
 });
 
-// Live slider labels
+// Slider live labels
 function bindRange(id) {
   const el = document.getElementById(id);
   const out = document.getElementById(id + "-v");
+  if (!el || !out) return;
   const update = () => { out.textContent = Number(el.value).toFixed(2); };
   el.addEventListener("input", update);
   update();
@@ -45,6 +57,28 @@ function byId(profiles) {
   return m;
 }
 
+// Savings per matched student: assume Airbnb ≈ $3000/mo for 12 weeks ≈ $9000,
+// sublet rate ≈ $1500/mo ≈ $4500. Saving ≈ $4500 per matched user; cycle matches
+// save both sides, so count matched_in_cycles * 4500.
+const SAVINGS_PER_USER = 4500;
+
+function fmtMoney(n) {
+  if (n >= 1e6) return "$" + (n / 1e6).toFixed(2) + "M";
+  if (n >= 1e3) return "$" + (n / 1e3).toFixed(0) + "K";
+  return "$" + n.toFixed(0);
+}
+
+function renderHero(result) {
+  const s = result.stats;
+  const savings = s.matchedInCycles * SAVINGS_PER_USER;
+  document.getElementById("savings").textContent = fmtMoney(savings);
+  document.getElementById("savings-sub").textContent =
+    `Across ${s.matchedInCycles} matched students (${(s.matchedInCycles / s.total * 100).toFixed(0)}% of ${s.total}) at ~$${SAVINGS_PER_USER.toLocaleString()} saved each vs. Airbnb rates.`;
+  document.getElementById("hs-cycle").textContent = `${s.matchedInCycles} / ${s.total}`;
+  document.getElementById("hs-cycles-n").textContent = s.cyclesFound;
+  document.getElementById("hs-cycle-len").textContent = s.avgCycleLen.toFixed(2);
+}
+
 function renderCycles(result) {
   const host = document.getElementById("cycles");
   host.innerHTML = "";
@@ -53,9 +87,8 @@ function renderCycles(result) {
     host.innerHTML = '<div class="muted">No cycles found. Try lowering min date overlap or raising cycle cap.</div>';
     return;
   }
-  // Sort by length desc then score desc
   const sorted = result.cycles.slice().sort((a, b) => b.nodes.length - a.nodes.length || b.avgScore - a.avgScore);
-  for (const c of sorted) {
+  sorted.forEach((c, idx) => {
     const el = document.createElement("div");
     el.className = "cycle len-" + c.nodes.length;
     const chain = c.nodes.map(n => {
@@ -69,9 +102,20 @@ function renderCycles(result) {
         <span class="score">score ${c.avgScore.toFixed(3)}</span>
       </div>
       <div class="chain">${chain} <span class="arrow">\u2192</span> ${first.name}</div>
+      <div class="cycle-expand" hidden></div>
     `;
+    const expand = el.querySelector(".cycle-expand");
+    el.addEventListener("click", () => {
+      if (expand.hasAttribute("hidden")) {
+        expand.innerHTML = renderCycleCards(result.profiles, c.nodes);
+        expand.removeAttribute("hidden");
+      } else {
+        expand.setAttribute("hidden", "");
+        expand.innerHTML = "";
+      }
+    });
     host.appendChild(el);
-  }
+  });
 }
 
 function renderBilateral(result) {
@@ -92,7 +136,7 @@ function renderBilateral(result) {
         <span>${A.name} \u2192 ${B.name}</span>
         <span class="score">score ${pair.score.toFixed(3)}</span>
       </div>
-      <div class="chain muted">${A.name} offers ${A.offered.unit} in ${A.origin} (${fmtDate(A.start)} \u2013 ${fmtDate(A.end)}); ${B.name} needs ${B.dest}</div>
+      <div class="chain muted">${A.name} offers ${A.offered.unit} in ${A.origin} (${fmtDate(A.start)}\u2013${fmtDate(A.end)}); ${B.name} needs ${B.dest}</div>
     `;
     host.appendChild(el);
   }
@@ -103,6 +147,26 @@ function renderSummary(result) {
   const matchRate = ((s.matchedInCycles / s.total) * 100).toFixed(1);
   document.getElementById("summary").textContent =
     `${s.total} profiles · ${s.cyclesFound} cycles · ${s.matchedInCycles} in cycles (${matchRate}%) · avg len ${s.avgCycleLen.toFixed(2)} · avg score ${s.avgCycleScore.toFixed(3)}`;
+}
+
+function renderCompare(cycleResult, bilateralResult) {
+  const host = document.getElementById("compare-bars");
+  const cycleRate = cycleResult.stats.matchedInCycles / cycleResult.stats.total;
+  const bilateralRate = bilateralResult.stats.matchedInCycles / bilateralResult.stats.total;
+  const lift = cycleRate - bilateralRate;
+  host.innerHTML = `
+    <div class="bar-row">
+      <div class="bar-label">Bilateral only</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(bilateralRate * 100).toFixed(1)}%; background:#53565A"></div></div>
+      <div class="bar-val">${(bilateralRate * 100).toFixed(1)}%</div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Cycle-finding</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(cycleRate * 100).toFixed(1)}%"></div></div>
+      <div class="bar-val">${(cycleRate * 100).toFixed(1)}%</div>
+    </div>
+    <div class="compare-note">Cycle-finding lifts match rate by <b>+${(lift * 100).toFixed(1)}pp</b> &mdash; the platform's core thesis.</div>
+  `;
 }
 
 function renderDataTable(profiles) {
@@ -120,14 +184,69 @@ function renderDataTable(profiles) {
   host.innerHTML = `<table>${head}${rows}</table>`;
 }
 
-document.getElementById("run").addEventListener("click", () => {
+function renderCyclePicker(result) {
+  const host = document.getElementById("cycle-picker");
+  host.innerHTML = "";
+  const map = byId(result.profiles);
+  if (!result.cycles.length) {
+    host.innerHTML = '<div class="muted">No cycles to replay.</div>';
+    return;
+  }
+  const sorted = result.cycles.slice().sort((a, b) => b.nodes.length - a.nodes.length || b.avgScore - a.avgScore);
+  sorted.slice(0, 24).forEach(c => {
+    const chip = document.createElement("button");
+    chip.className = "cycle-chip";
+    const cities = c.nodes.map(n => map.get(n).origin).join("\u2192");
+    chip.innerHTML = `<span class="chip-len">L${c.nodes.length}</span> ${cities} <span class="chip-score">${c.avgScore.toFixed(2)}</span>`;
+    chip.addEventListener("click", () => {
+      animateCycle(document.getElementById("map"), result, c);
+    });
+    host.appendChild(chip);
+  });
+}
+
+// Sparkline: sweep skew from 0..1, measure match rate at each step.
+function computeSparkline(baseParams) {
+  const steps = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+  const points = steps.map(sk => {
+    const profiles = generateProfiles({ n: baseParams.n, seed: baseParams.seed, skew: sk });
+    const r = runMatcher(profiles, baseParams);
+    return { x: sk, y: r.stats.matchedInCycles / r.stats.total };
+  });
+  renderSparkline(document.getElementById("sparkline"), points);
+}
+
+function runAll() {
   const params = readParams();
   lastProfiles = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
   lastResult = runMatcher(lastProfiles, params);
+  lastBilateralOnly = runBilateralOnly(lastProfiles, params);
+
+  renderHero(lastResult);
   renderSummary(lastResult);
   renderCycles(lastResult);
   renderBilateral(lastResult);
+  renderCompare(lastResult, lastBilateralOnly);
   renderDataTable(lastProfiles);
+
+  // Visualize tab
+  renderMap(document.getElementById("map"), lastResult);
+  renderSankey(document.getElementById("sankey"), lastResult);
+  renderHeatmap(document.getElementById("heatmap"), lastResult);
+  renderCyclePicker(lastResult);
+
+  computeSparkline(params);
+}
+
+document.getElementById("run").addEventListener("click", runAll);
+
+// Re-run sparkline live as user drags skew
+let skewTimer = null;
+document.getElementById("skew").addEventListener("input", () => {
+  clearTimeout(skewTimer);
+  skewTimer = setTimeout(() => {
+    computeSparkline(readParams());
+  }, 120);
 });
 
 document.getElementById("download-csv").addEventListener("click", () => {
@@ -146,14 +265,12 @@ document.getElementById("download-csv").addEventListener("click", () => {
 });
 
 // Evaluation
-
 function scenario(label, overrides, params) {
   const p = { ...params, ...overrides };
   const profiles = generateProfiles({ n: p.n, seed: p.seed, skew: p.skew });
   const res = runMatcher(profiles, p);
   const s = res.stats;
-  const bilateralIds = new Set(res.bilateral.slice(0, Math.min(res.bilateral.length, profiles.length)).flatMap(pair => [pair.provider, pair.renter]));
-  // Count unique users served by bilateral who weren't in cycles.
+  const bilateralIds = new Set(res.bilateral.flatMap(pair => [pair.provider, pair.renter]));
   const bilateralUnique = [...bilateralIds].filter(id => !res.matchedSet.has(id)).length;
   return {
     label,
@@ -185,8 +302,6 @@ function renderEvalResults(scenarios) {
     `;
     host.appendChild(el);
   }
-
-  // Comparison bars
   const bar = document.createElement("div");
   bar.className = "scenario";
   bar.innerHTML = "<h3>Match rate comparison</h3>";
@@ -238,5 +353,11 @@ document.getElementById("run-eval").addEventListener("click", () => {
   renderDropout(dropoutResults);
 });
 
-// Auto-run on load for immediate demo
-document.getElementById("run").click();
+// Initial run
+try {
+  runAll();
+} catch (e) {
+  console.error("CycleStay initial run failed:", e);
+}
+
+})();

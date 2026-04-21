@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CycleStay — Matching Prototype</title>
-<link rel="stylesheet" href="styles.css?v=2" />
+<link rel="stylesheet" href="styles.css?v=3" />
 </head>
 <body>
 <header>
@@ -14,6 +14,7 @@
 
 <nav class="tabs">
   <button class="tab active" data-tab="match">Generate &amp; Match</button>
+  <button class="tab" data-tab="viz">Visualize</button>
   <button class="tab" data-tab="eval">Evaluation</button>
   <button class="tab" data-tab="data">Data</button>
 </nav>
@@ -21,6 +22,20 @@
 <main>
 
 <section id="tab-match" class="tab-panel active">
+
+  <div class="panel hero">
+    <div class="hero-main">
+      <div class="hero-label">Estimated student savings this run</div>
+      <div class="hero-value" id="savings">$0</div>
+      <div class="hero-sub" id="savings-sub">Run a match to compute.</div>
+    </div>
+    <div class="hero-side">
+      <div class="hero-stat"><div class="hero-stat-label">Matched in cycles</div><div class="hero-stat-value" id="hs-cycle">—</div></div>
+      <div class="hero-stat"><div class="hero-stat-label">Cycles found</div><div class="hero-stat-value" id="hs-cycles-n">—</div></div>
+      <div class="hero-stat"><div class="hero-stat-label">Avg cycle length</div><div class="hero-stat-value" id="hs-cycle-len">—</div></div>
+    </div>
+  </div>
+
   <div class="panel controls">
     <h2>Parameters</h2>
     <div class="grid">
@@ -37,10 +52,20 @@
       <button id="run">Generate &amp; Match</button>
       <span id="summary" class="muted"></span>
     </div>
+    <div class="spark-wrap">
+      <div class="spark-label">Match rate vs. market skew</div>
+      <div id="sparkline"></div>
+    </div>
   </div>
 
   <div class="panel">
-    <h2>Cycles found</h2>
+    <h2>Cycles vs. bilateral pairs</h2>
+    <p class="muted">Same data, two algorithms: bilateral-only (length-2 swaps only) vs. cycle-finding (up to length 4). The lift is the platform's thesis.</p>
+    <div id="compare-bars"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Cycles found <span class="muted">(click to expand)</span></h2>
     <div id="cycles" class="results"></div>
   </div>
 
@@ -50,10 +75,35 @@
   </div>
 </section>
 
+<section id="tab-viz" class="tab-panel">
+  <div class="panel">
+    <h2>National flow map</h2>
+    <p class="muted">Arcs show sublease flow between cities. Cardinal = matched in cycles, grey = unmatched demand. Click any cycle below to replay its moves across the map.</p>
+    <div id="map"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Cycle playback</h2>
+    <p class="muted">Pick a cycle to animate across the map above.</p>
+    <div id="cycle-picker" class="cycle-picker"></div>
+  </div>
+
+  <div class="panel two-col">
+    <div>
+      <h2>Origin → Destination flow</h2>
+      <div id="sankey"></div>
+    </div>
+    <div>
+      <h2>Match heatmap</h2>
+      <div id="heatmap"></div>
+    </div>
+  </div>
+</section>
+
 <section id="tab-eval" class="tab-panel">
   <div class="panel">
     <h2>Scenario evaluation</h2>
-    <p class="muted">Runs balanced, skewed, and sparse synthetic markets with the same parameters and reports match rates and cycle quality.</p>
+    <p class="muted">Runs balanced, skewed, and sparse synthetic markets with the same parameters.</p>
     <div class="actions">
       <button id="run-eval">Run evaluation</button>
     </div>
@@ -62,7 +112,7 @@
 
   <div class="panel">
     <h2>Dropout robustness</h2>
-    <p class="muted">Randomly removes 10% of matched participants and counts how many cycles collapse vs. repair via a single-node substitute from the unmatched pool.</p>
+    <p class="muted">Randomly removes 10% of matched participants and counts how many cycles collapse vs. repair via a single-node substitute.</p>
     <div id="dropout-results"></div>
   </div>
 </section>
@@ -80,8 +130,9 @@
 
 </main>
 
-<script src="data.js?v=1"></script>
-<script src="matcher.js?v=1"></script>
-<script src="app.js?v=1"></script>
+<script src="data.js?v=2"></script>
+<script src="matcher.js?v=2"></script>
+<script src="viz.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

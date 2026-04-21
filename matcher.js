@@ -236,4 +236,9 @@ function simulateDropout(result, dropoutRate, seed) {
   };
 }
 
-window.CS_MATCH = { runMatcher, simulateDropout, scoreEdge, buildGraph };
+// Bilateral-only baseline: cap cycles at length 2 (pure pairwise swaps).
+function runBilateralOnly(profiles, opts) {
+  return runMatcher(profiles, { ...opts, cap: 2 });
+}
+
+window.CS_MATCH = { runMatcher, runBilateralOnly, simulateDropout, scoreEdge, buildGraph };
