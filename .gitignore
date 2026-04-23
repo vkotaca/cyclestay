@@ -1,5 +1,8 @@
 .DS_Store
 .claude/
+.env
+.env.local
+.vercel
 node_modules/
 *.log
 .vscode/

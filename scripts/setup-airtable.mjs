@@ -16,6 +16,19 @@
 //
 // Idempotent: fields that already exist are skipped.
 
+// Auto-load .env.local if present (from `vercel env pull`).
+import fs from "node:fs";
+import path from "node:path";
+const envPath = path.resolve(process.cwd(), ".env.local");
+if (fs.existsSync(envPath)) {
+  const content = fs.readFileSync(envPath, "utf-8");
+  for (const line of content.split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*"?([^"\n]*?)"?\s*$/);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2];
+  }
+  console.log(`Loaded env from ${envPath}`);
+}
+
 const API_KEY = process.env.AIRTABLE_API_KEY;
 const BASE_ID = process.env.AIRTABLE_BASE_ID;
 const TABLE_NAME = process.env.AIRTABLE_TABLE_NAME || "Listings";
