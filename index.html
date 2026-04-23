@@ -665,13 +665,150 @@
   </div>
 </section>
 
-<!-- CTA -->
+<!-- CTA / Listing form -->
 <section id="cta">
   <p class="label">Summer 2026 · Pilot open</p>
-  <h2>Ready to find your cycle?</h2>
-  <p>It takes 5 minutes to list. The matcher runs on demand.</p>
-  <a href="app.html" class="btn-white">Launch matcher →</a>
+  <h2>List your apartment</h2>
+  <p>Takes under two minutes. We'll email you when a cycle matches.</p>
+
+  <form id="listing-form" class="listing-form">
+    <div class="form-row">
+      <label>Full name
+        <input name="name" type="text" required autocomplete="name" placeholder="Alex Lee" />
+      </label>
+      <label>.edu email
+        <input name="email" type="email" required autocomplete="email" placeholder="you@stanford.edu" pattern="[^@\s]+@[^@\s]+\.edu" title="Must be a .edu email address" />
+      </label>
+    </div>
+    <div class="form-row">
+      <label>Origin city (your current apartment)
+        <select name="origin" required>
+          <option value="">Select city…</option>
+          <option>SF</option><option>NYC</option><option>Boston</option>
+          <option>Chicago</option><option>Seattle</option><option>LA</option>
+          <option>Austin</option><option>Miami</option><option>DC</option>
+        </select>
+      </label>
+      <label>Destination city (your internship)
+        <select name="dest" required>
+          <option value="">Select city…</option>
+          <option>SF</option><option>NYC</option><option>Boston</option>
+          <option>Chicago</option><option>Seattle</option><option>LA</option>
+          <option>Austin</option><option>Miami</option><option>DC</option>
+        </select>
+      </label>
+    </div>
+    <div class="form-row">
+      <label>Start date
+        <input name="start_date" type="date" required />
+      </label>
+      <label>End date
+        <input name="end_date" type="date" required />
+      </label>
+      <label>Unit type
+        <select name="unit_type" required>
+          <option value="">Select…</option>
+          <option value="studio">Studio</option>
+          <option value="1br">1 Bedroom</option>
+          <option value="2br+">2+ Bedroom</option>
+          <option value="room">Room in shared unit</option>
+        </select>
+      </label>
+    </div>
+    <div class="form-submit">
+      <button type="submit" class="btn-white">Submit listing →</button>
+      <span id="form-status" class="form-status"></span>
+    </div>
+  </form>
+
+  <p class="cta-sub">Or: <a href="app.html" class="cta-link">admin console →</a></p>
 </section>
+
+<style>
+.listing-form {
+  max-width: 680px;
+  margin: 32px auto 0;
+  text-align: left;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(8px);
+  padding: 28px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.form-row:has(> label:nth-child(3)) { grid-template-columns: 1fr 1fr 1fr; }
+.listing-form label {
+  display: flex; flex-direction: column; gap: 6px;
+  font-size: 12px; font-weight: 500; letter-spacing: 0.4px;
+  color: rgba(255,255,255,0.85);
+  text-transform: none;
+}
+.listing-form input, .listing-form select {
+  background: var(--white);
+  color: var(--ink);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 14px;
+}
+.listing-form input:focus, .listing-form select:focus {
+  outline: 2px solid var(--white);
+  outline-offset: 1px;
+}
+.form-submit { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+.form-status { color: rgba(255,255,255,0.92); font-size: 13px; }
+.form-status.error { color: #FFDDDD; }
+.cta-sub { margin-top: 22px; font-size: 13px; color: rgba(255,255,255,0.55); }
+.cta-link { color: rgba(255,255,255,0.85); text-decoration: underline; }
+.cta-link:hover { color: var(--white); }
+
+@media (max-width: 640px) {
+  .form-row, .form-row:has(> label:nth-child(3)) { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+(function () {
+  const form = document.getElementById("listing-form");
+  const status = document.getElementById("form-status");
+  if (!form) return;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(form).entries());
+    if (data.origin === data.dest) {
+      status.className = "form-status error";
+      status.textContent = "Origin and destination must differ.";
+      return;
+    }
+    if (new Date(data.end_date) <= new Date(data.start_date)) {
+      status.className = "form-status error";
+      status.textContent = "End date must be after start date.";
+      return;
+    }
+    status.className = "form-status";
+    status.textContent = "Submitting…";
+    try {
+      const r = await fetch("/api/listings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const body = await r.json().catch(() => ({}));
+      if (r.ok) {
+        status.textContent = "✓ Submitted — we'll email you when a cycle matches.";
+        form.reset();
+      } else {
+        status.className = "form-status error";
+        status.textContent = body.error || "Submission failed. Try again.";
+      }
+    } catch (err) {
+      status.className = "form-status error";
+      status.textContent = "Network error — check your connection.";
+    }
+  });
+})();
+</script>
 
 <!-- FOOTER -->
 <footer>

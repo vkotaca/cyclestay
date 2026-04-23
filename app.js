@@ -213,18 +213,34 @@ function renderCompare(cycleResult, bilateralResult) {
 
 function renderDataTable(profiles) {
   const host = document.getElementById("data-table");
-  const head = `<tr><th>id</th><th>name</th><th>origin</th><th>dest</th><th>start</th><th>end</th><th>unit</th><th>pets</th><th>parking</th><th>private</th><th>transit</th><th>accepts</th></tr>`;
-  const rows = profiles.map(p => `<tr>
-    <td>${p.id}</td><td>${p.name}</td><td>${p.origin}</td><td>${p.dest}</td>
-    <td>${fmtDate(p.start)}</td><td>${fmtDate(p.end)}</td>
-    <td>${p.offered.unit}</td>
-    <td>${p.offered.hasPets ? "y" : ""}</td>
-    <td>${p.offered.hasParking ? "y" : ""}</td>
-    <td>${p.offered.isPrivate ? "y" : ""}</td>
-    <td>${p.offered.nearTransit ? "y" : ""}</td>
-    <td>${[...p.needs.units].join("|")}</td>
-  </tr>`).join("");
+  const isReal = profiles.some(p => p.recordId);
+  const extra = isReal ? "<th>status</th><th>action</th>" : "";
+  const head = `<tr><th>id</th><th>name</th><th>origin</th><th>dest</th><th>start</th><th>end</th><th>unit</th>${extra}</tr>`;
+  const rows = profiles.map(p => {
+    const action = isReal
+      ? `<td>${p.status || ""}</td><td>${p.recordId ? `<button class="mini-btn" data-id="${p.recordId}" data-status="matched">Mark matched</button>` : ""}</td>`
+      : "";
+    return `<tr>
+      <td>${p.id}</td><td>${p.name}</td><td>${p.origin}</td><td>${p.dest}</td>
+      <td>${fmtDate(p.start)}</td><td>${fmtDate(p.end)}</td>
+      <td>${p.offered.unit}</td>
+      ${action}
+    </tr>`;
+  }).join("");
   host.innerHTML = `<table>${head}${rows}</table>`;
+  host.querySelectorAll(".mini-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      btn.disabled = true;
+      btn.textContent = "…";
+      try {
+        await window.CS_ADMIN.patchListing(btn.dataset.id, btn.dataset.status);
+        btn.textContent = "✓ Updated";
+      } catch (e) {
+        btn.textContent = "Error";
+        btn.disabled = false;
+      }
+    });
+  });
 }
 
 function renderCyclePicker(result) {
@@ -290,9 +306,29 @@ function showCityCycles(city) {
   highlightCycleOnMap(document.getElementById("map"), lastResult, top[0]);
 }
 
-function runAll() {
+async function runAll() {
   const params = readParams();
-  lastProfiles = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
+  const source = window.CS_ADMIN?.getDataSource?.() || "synthetic";
+  const sourceStatus = document.getElementById("source-status");
+
+  if (source === "real") {
+    try {
+      if (sourceStatus) sourceStatus.textContent = "Loading submissions…";
+      lastProfiles = await window.CS_ADMIN.fetchListings();
+      if (!lastProfiles.length) {
+        if (sourceStatus) sourceStatus.textContent = "No Airtable submissions yet — falling back to synthetic.";
+        lastProfiles = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
+      } else {
+        if (sourceStatus) sourceStatus.textContent = `Loaded ${lastProfiles.length} real submissions from Airtable.`;
+      }
+    } catch (e) {
+      if (sourceStatus) sourceStatus.textContent = `Fetch failed (${e.message}) — falling back to synthetic.`;
+      lastProfiles = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
+    }
+  } else {
+    if (sourceStatus) sourceStatus.textContent = "";
+    lastProfiles = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
+  }
   lastResult = runMatcher(lastProfiles, params);
   lastBilateralOnly = runBilateralOnly(lastProfiles, params);
 
@@ -315,7 +351,18 @@ function runAll() {
   history.replaceState(null, "", paramsToHash(params));
 }
 
-document.getElementById("run").addEventListener("click", runAll);
+document.getElementById("run").addEventListener("click", () => { runAll(); });
+
+// Wire the data source radio buttons
+document.querySelectorAll('input[name="source"]').forEach(r => {
+  r.addEventListener("change", () => {
+    if (window.CS_ADMIN) window.CS_ADMIN.setDataSource(r.value);
+    runAll();
+  });
+});
+
+// Expose re-run hook for admin.js (called after successful admin login)
+window.CS_APP_READY = () => { runAll(); };
 
 // Live sparkline as user drags skew
 let skewTimer = null;

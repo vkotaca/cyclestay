@@ -4,9 +4,21 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CycleStay — Multi-Way Sublease Exchange</title>
-<link rel="stylesheet" href="styles.css?v=8" />
+<link rel="stylesheet" href="styles.css?v=9" />
 </head>
 <body>
+
+<!-- Admin gate overlay -->
+<div id="admin-gate" class="admin-gate">
+  <form id="admin-gate-form" class="admin-gate-box">
+    <h2>Admin Console</h2>
+    <p class="admin-gate-sub">Enter the shared admin key to access the matcher.</p>
+    <input id="admin-gate-input" type="password" placeholder="Admin key" autocomplete="current-password" required />
+    <button type="submit">Unlock</button>
+    <div id="admin-gate-error" class="admin-gate-error" hidden></div>
+    <a href="index.html" class="admin-gate-back">← Back to cyclestay</a>
+  </form>
+</div>
 
 <section id="hero" class="hero-landing">
   <div class="hero-inner">
@@ -40,9 +52,14 @@
 </section>
 
 <header>
-  <a href="index.html" class="back-link">&larr; Back to cyclestay</a>
-  <h1>CycleStay</h1>
-  <p class="sub">Multi-way sublease exchange — matching engine prototype</p>
+  <div class="header-row">
+    <div>
+      <a href="index.html" class="back-link">&larr; Back to cyclestay</a>
+      <h1>CycleStay Admin</h1>
+      <p class="sub">Multi-way sublease exchange — matching engine prototype</p>
+    </div>
+    <button id="admin-logout" class="btn-logout" title="Lock admin session">\u{1F512} Lock</button>
+  </div>
 </header>
 
 <nav class="tabs">
@@ -66,6 +83,16 @@
       <div class="hero-stat"><div class="hero-stat-label">Matched in cycles</div><div class="hero-stat-value" id="hs-cycle">—</div></div>
       <div class="hero-stat"><div class="hero-stat-label">Cycles found</div><div class="hero-stat-value" id="hs-cycles-n">—</div></div>
       <div class="hero-stat"><div class="hero-stat-label">Avg cycle length</div><div class="hero-stat-value" id="hs-cycle-len">—</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Data source</h2>
+    <p class="muted">Synthetic generates 200 fake profiles for demos. Real submissions pulls live listings from Airtable.</p>
+    <div class="source-toggle">
+      <label class="radio"><input type="radio" name="source" value="synthetic" checked /> Synthetic (demo)</label>
+      <label class="radio"><input type="radio" name="source" value="real" /> Real submissions (Airtable)</label>
+      <span id="source-status" class="muted"></span>
     </div>
   </div>
 
@@ -230,6 +257,7 @@
 <script src="data.js?v=3"></script>
 <script src="matcher.js?v=3"></script>
 <script src="viz.js?v=3"></script>
-<script src="app.js?v=4"></script>
+<script src="admin.js?v=1"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
