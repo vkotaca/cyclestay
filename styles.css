@@ -120,6 +120,16 @@ header {
   border-bottom: 4px solid var(--cardinal);
   background: var(--bg);
 }
+.back-link {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cool-grey);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  margin-bottom: 6px;
+}
+.back-link:hover { color: var(--cardinal); }
 header h1 {
   margin: 0;
   font-size: 22px;

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CycleStay — Multi-Way Sublease Exchange</title>
+<link rel="stylesheet" href="styles.css?v=8" />
+</head>
+<body>
+
+<section id="hero" class="hero-landing">
+  <div class="hero-inner">
+    <div class="hero-kicker">Stanford GSB · Digital Platforms in the Age of AI · Spring 2026</div>
+    <h1 class="hero-title">CycleStay</h1>
+    <div class="hero-tagline">Trade your apartment, not your savings.</div>
+    <p class="hero-body">
+      Every summer, tens of thousands of students relocate for internships and face the same problem
+      simultaneously: they need to sublet their place and find short-term housing in a new city.
+      CycleStay uses <b>cycle-finding matching</b> &mdash; structurally identical to the algorithm behind
+      kidney-exchange programs &mdash; to identify 3- and 4-way swaps no bilateral platform can find.
+    </p>
+    <div class="hero-cta">
+      <button id="cta-tour" class="btn-primary">Take a 60-second tour</button>
+      <button id="cta-scroll" class="btn-secondary">Jump to the matcher</button>
+    </div>
+    <div class="hero-mini" id="hero-anim-wrap">
+      <svg viewBox="0 0 300 120" class="hero-anim">
+        <circle cx="60" cy="80" r="6" fill="#fff" class="hero-dot"/>
+        <circle cx="150" cy="30" r="6" fill="#fff" class="hero-dot"/>
+        <circle cx="240" cy="80" r="6" fill="#fff" class="hero-dot"/>
+        <text x="60" y="103" text-anchor="middle" font-family="Source Sans Pro" font-size="11" fill="#fff" opacity="0.85">SF</text>
+        <text x="150" y="22" text-anchor="middle" font-family="Source Sans Pro" font-size="11" fill="#fff" opacity="0.85">NYC</text>
+        <text x="240" y="103" text-anchor="middle" font-family="Source Sans Pro" font-size="11" fill="#fff" opacity="0.85">Austin</text>
+        <path d="M 60 80 Q 105 20 150 30" fill="none" stroke="#fff" stroke-width="2.5" class="hero-arc" style="animation-delay:0s"/>
+        <path d="M 150 30 Q 195 20 240 80" fill="none" stroke="#fff" stroke-width="2.5" class="hero-arc" style="animation-delay:0.8s"/>
+        <path d="M 240 80 Q 150 130 60 80" fill="none" stroke="#fff" stroke-width="2.5" class="hero-arc" style="animation-delay:1.6s"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<header>
+  <a href="index.html" class="back-link">&larr; Back to cyclestay</a>
+  <h1>CycleStay</h1>
+  <p class="sub">Multi-way sublease exchange — matching engine prototype</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="match">Generate &amp; Match</button>
+  <button class="tab" data-tab="viz">Visualize</button>
+  <button class="tab" data-tab="eval">Evaluation</button>
+  <button class="tab" data-tab="data">Data</button>
+</nav>
+
+<main>
+
+<section id="tab-match" class="tab-panel active">
+
+  <div class="panel hero">
+    <div class="hero-main">
+      <div class="hero-label">Estimated student savings this run</div>
+      <div class="hero-value" id="savings">$0</div>
+      <div class="hero-sub" id="savings-sub">Run a match to compute.</div>
+    </div>
+    <div class="hero-side">
+      <div class="hero-stat"><div class="hero-stat-label">Matched in cycles</div><div class="hero-stat-value" id="hs-cycle">—</div></div>
+      <div class="hero-stat"><div class="hero-stat-label">Cycles found</div><div class="hero-stat-value" id="hs-cycles-n">—</div></div>
+      <div class="hero-stat"><div class="hero-stat-label">Avg cycle length</div><div class="hero-stat-value" id="hs-cycle-len">—</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Persona scenarios</h2>
+    <p class="muted">Each button loads a realistic parameter set for a different student segment and re-runs the match.</p>
+    <div class="persona-row">
+      <button class="persona" data-persona="mba">MBA intern summer <span class="persona-sub">n=180, concentrated NYC/SF flow</span></button>
+      <button class="persona" data-persona="mscs">MS CS intern <span class="persona-sub">n=260, heavy SF/Seattle, longer stays</span></button>
+      <button class="persona" data-persona="undergrad">Undergrad research <span class="persona-sub">n=140, shorter stays, balanced flow</span></button>
+    </div>
+  </div>
+
+  <div class="panel controls">
+    <h2>Parameters</h2>
+    <div class="grid">
+      <label>Profiles <span class="tip" data-tip="How many synthetic students to generate. 200 is a realistic summer intern cohort. Bigger = more potential matches, slower to run.">&#9432;</span><input id="n" type="number" value="200" min="10" max="1000" /></label>
+      <input id="seed" type="hidden" value="42" />
+      <label>Skew (0=balanced, 1=realistic) <span class="tip" data-tip="How concentrated the city flows are. 0 = toy world where every city sends/receives equally. 1 = realistic (NYC and SF dominate, Miami small). Higher skew actually makes cycle-finding work BETTER because concentrated flows create more overlapping paths.">&#9432;</span><input id="skew" type="range" min="0" max="1" step="0.05" value="0.5" /><span id="skew-v">0.50</span></label>
+      <label>Date overlap weight <span class="tip" data-tip="How much the matcher cares about trip dates lining up. Most important weight — no point matching if someone needs Jul-Aug and the place is free May-Jun.">&#9432;</span><input id="w-date" type="range" min="0" max="1" step="0.05" value="0.5" /><span id="w-date-v">0.50</span></label>
+      <label>Unit type weight <span class="tip" data-tip="How much the matcher cares about unit type. Studio-for-studio scores 1.0; fuzzy matches (studio-for-1BR if acceptable) score 0.75.">&#9432;</span><input id="w-unit" type="range" min="0" max="1" step="0.05" value="0.3" /><span id="w-unit-v">0.30</span></label>
+      <label>Constraint weight <span class="tip" data-tip="How much nice-to-haves (parking, transit, private room) boost the score beyond hard requirements. Hard requirements are always enforced regardless of this weight.">&#9432;</span><input id="w-con" type="range" min="0" max="1" step="0.05" value="0.2" /><span id="w-con-v">0.20</span></label>
+      <label>Max cycle length <span class="tip" data-tip="Longest swap chain to look for. 2 = pairs only (bilateral). 3 = triangles (SF-NYC-Austin-SF). 4 = four-way swaps (proposal's cap). Larger cycles match more people but are harder to coordinate in real life.">&#9432;</span><input id="cap" type="number" value="4" min="2" max="5" /></label>
+      <label>Min date overlap (days) <span class="tip" data-tip="Reject matches where the two students' trips overlap fewer than this many days. 42 = six weeks, filters out half-summer mismatches. Lower = more matches but some will be low-quality.">&#9432;</span><input id="minov" type="number" value="42" min="0" max="90" /></label>
+      <label class="checkbox"><input id="optimize" type="checkbox" /> Use near-optimal selection (local search)<span class="tip" data-tip="When unchecked: greedy selector (fast). When checked: runs 60 randomized restarts to find a better combination of cycles. Gains ~1-3pp match rate at the cost of ~500ms.">&#9432;</span></label>
+    </div>
+    <div class="actions">
+      <button id="run">Generate &amp; Match</button>
+      <button id="share-link" class="btn-secondary">Copy shareable link</button>
+      <button id="export-png" class="btn-secondary">Export map PNG</button>
+      <button id="export-md" class="btn-secondary">Export summary</button>
+      <span id="summary" class="muted"></span>
+    </div>
+    <div class="spark-wrap">
+      <div class="spark-label">Match rate vs. market skew</div>
+      <div id="sparkline"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Cycles vs. bilateral pairs</h2>
+    <p class="muted">Same data, two algorithms: bilateral-only (length-2 swaps) vs. cycle-finding (up to length 4). The lift is the platform's thesis.</p>
+    <div id="compare-bars"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Cycles found <span class="muted">(click to expand, hit Swap to substitute a student)</span></h2>
+    <div id="cycles" class="results"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Bilateral fallback (top 20)</h2>
+    <div id="bilateral" class="results"></div>
+  </div>
+</section>
+
+<section id="tab-viz" class="tab-panel">
+  <div class="panel">
+    <h2>National flow map <span class="muted">(click a city pin to see its cycles)</span></h2>
+    <p class="muted">Arcs show sublease flow. Cardinal = matched in cycles, grey = unmatched demand.</p>
+    <div id="map"></div>
+    <div id="map-city-info" class="muted" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Cycle playback</h2>
+    <p class="muted">Pick a cycle to animate across the map. Or click "Perturb" to simulate a random dropout and watch the repair attempt.</p>
+    <div class="actions">
+      <button id="perturb-btn" class="btn-secondary">\u26a1 Perturb random match</button>
+      <span id="perturb-status" class="muted"></span>
+    </div>
+    <div id="cycle-picker" class="cycle-picker"></div>
+  </div>
+
+  <div class="panel two-col">
+    <div>
+      <h2>Origin → Destination flow</h2>
+      <div id="sankey"></div>
+    </div>
+    <div>
+      <h2>Match heatmap</h2>
+      <div id="heatmap"></div>
+    </div>
+  </div>
+</section>
+
+<section id="tab-eval" class="tab-panel">
+  <div class="panel">
+    <h2>Scenario evaluation</h2>
+    <p class="muted">Balanced / skewed / sparse synthetic markets with the same parameters.</p>
+    <div class="actions">
+      <button id="run-eval">Run evaluation</button>
+    </div>
+    <div id="eval-results"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Dropout robustness</h2>
+    <p class="muted">Remove 10% of matched participants at random. Count cycles that collapse vs. repair via a single-node substitute.</p>
+    <div id="dropout-results"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Multi-seed benchmarks <span class="muted">(20 seeds, error bars = 1 stdev)</span></h2>
+    <p class="muted">Bilateral-only vs. cycle-finding, averaged over many random markets to show statistical confidence in the cycle lift.</p>
+    <div class="actions">
+      <button id="run-multiseed">Run 20-seed benchmark</button>
+      <span id="multiseed-status" class="muted"></span>
+    </div>
+    <div id="multiseed-bars"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Sensitivity heatmap <span class="muted">(match rate by skew × min-overlap)</span></h2>
+    <p class="muted">Sweep two parameters simultaneously to see which combinations break the matcher.</p>
+    <div class="actions">
+      <button id="run-sensitivity">Run sensitivity sweep</button>
+      <span id="sensitivity-status" class="muted"></span>
+    </div>
+    <div id="sensitivity-grid"></div>
+  </div>
+</section>
+
+<section id="tab-data" class="tab-panel">
+  <div class="panel">
+    <h2>Synthetic profiles</h2>
+    <div class="actions">
+      <button id="download-csv">Download CSV</button>
+      <span class="muted">Re-generate from the Match tab to refresh.</span>
+    </div>
+    <div id="data-table" class="table-wrap"></div>
+  </div>
+</section>
+
+</main>
+
+<div id="spinner" class="spinner" hidden><div class="spinner-inner"></div><div id="spinner-text">Working…</div></div>
+
+<div id="tour-overlay" class="tour-overlay" hidden>
+  <div id="tour-spot" class="tour-spot"></div>
+  <div id="tour-tooltip" class="tour-tooltip">
+    <div id="tour-text"></div>
+    <div class="tour-nav">
+      <span id="tour-step"></span>
+      <button id="tour-prev" class="btn-secondary">Back</button>
+      <button id="tour-next" class="btn-primary">Next</button>
+      <button id="tour-close" class="btn-secondary">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="swap-modal" class="modal" hidden>
+  <div class="modal-box">
+    <div class="modal-head">
+      <div id="swap-title">Swap substitute</div>
+      <button id="swap-close" class="btn-secondary">Close</button>
+    </div>
+    <div id="swap-list" class="swap-list"></div>
+  </div>
+</div>
+
+<script src="data.js?v=3"></script>
+<script src="matcher.js?v=3"></script>
+<script src="viz.js?v=3"></script>
+<script src="app.js?v=4"></script>
+</body>
+</html>
