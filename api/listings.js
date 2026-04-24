@@ -39,6 +39,7 @@ module.exports = async (req, res) => {
         method: "POST",
         headers: atHeaders,
         body: JSON.stringify({
+          typecast: true,
           fields: {
             name: body.name,
             email: body.email.toLowerCase(),
