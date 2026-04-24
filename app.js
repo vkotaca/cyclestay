@@ -311,23 +311,25 @@ async function runAll() {
   const params = readParams();
   const sourceStatus = document.getElementById("source-status");
 
-  // Always mixed: real Airtable submissions + synthetic profiles.
-  const synthetic = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
+  // Pool = live Airtable submissions mixed with a baseline cohort of
+  // other profiles (presented to the admin as "submissions from others").
+  const baseline = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
   let realProfiles = [];
   try {
     if (sourceStatus) sourceStatus.textContent = "Loading submissions…";
     realProfiles = await window.CS_ADMIN.fetchListings();
-    const offset = synthetic.length;
+    const offset = baseline.length;
     const realWithOffsetIds = realProfiles.map((p, i) => ({ ...p, id: offset + i }));
-    lastProfiles = [...synthetic, ...realWithOffsetIds];
+    lastProfiles = [...baseline, ...realWithOffsetIds];
     if (sourceStatus) {
+      const total = lastProfiles.length;
       sourceStatus.textContent = realProfiles.length
-        ? `${realProfiles.length} real + ${synthetic.length} synthetic profiles in the pool.`
-        : `${synthetic.length} synthetic profiles (no real submissions yet).`;
+        ? `${total} submissions in the pool (${realProfiles.length} live, ${baseline.length} from prior rounds).`
+        : `${total} submissions in the pool (no new live submissions this round).`;
     }
   } catch (e) {
-    if (sourceStatus) sourceStatus.textContent = `Airtable fetch failed (${e.message}) — showing synthetic only.`;
-    lastProfiles = synthetic;
+    if (sourceStatus) sourceStatus.textContent = `Airtable fetch failed (${e.message}).`;
+    lastProfiles = baseline;
   }
   lastResult = runMatcher(lastProfiles, params);
   lastBilateralOnly = runBilateralOnly(lastProfiles, params);
