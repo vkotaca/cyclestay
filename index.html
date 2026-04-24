@@ -296,9 +296,9 @@
 
   /* ── CTA ── */
   #cta { background: var(--cardinal); padding: 120px 60px; text-align: center; }
-  #cta .label { color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+  #cta .label { color: rgba(255,255,255,0.9); margin-bottom: 20px; }
   #cta h2 { color: var(--white); margin-bottom: 16px; }
-  #cta p { color: rgba(255,255,255,0.75); font-size: 18px; font-weight: 300; margin-bottom: 44px; }
+  #cta p { color: var(--white); font-size: 18px; font-weight: 300; margin-bottom: 44px; }
   .btn-white {
     background: var(--white); color: var(--cardinal-dark);
     font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500;
@@ -350,17 +350,53 @@
     #cta { padding: 80px 40px; }
     footer { padding: 40px; flex-direction: column; align-items: flex-start; }
   }
-  @media (max-width: 640px) {
-    nav .nav-links { display: none; }
-    h1 { font-size: 44px; letter-spacing: -1.5px; }
-    .hero-stats { flex-wrap: wrap; gap: 28px; }
-    .math-grid { grid-template-columns: 1fr; }
-    section { padding: 64px 24px; }
-    #hero { padding: 100px 24px 64px; }
+  @media (max-width: 760px) {
+    /* Keep the CTA button visible on mobile; hide only the text links */
+    nav .nav-links a:not(.nav-cta) { display: none; }
+    .nav-cta { padding: 8px 16px; font-size: 12px; }
     nav { padding: 0 20px; height: 60px; }
-    footer { padding: 40px 24px; }
-    .hero-actions { flex-direction: column; align-items: stretch; }
-    .hero-actions .btn-primary, .hero-actions .btn-ghost { width: 100%; justify-content: center; }
+    .logo { font-size: 20px; }
+
+    h1 { font-size: 40px; letter-spacing: -1.2px; }
+    h2 { font-size: 30px; letter-spacing: -0.8px; }
+    .hero-sub { font-size: 16px; margin-bottom: 32px; }
+    .hero-stats { flex-wrap: wrap; gap: 24px 36px; padding-top: 24px; }
+    .stat-n { font-size: 28px; }
+
+    .math-grid { grid-template-columns: 1fr; }
+    .math-card { padding: 24px; }
+    .math-n { font-size: 40px; }
+
+    section { padding: 56px 20px; }
+    #hero { padding: 100px 20px 56px; }
+    #cta { padding: 72px 20px; }
+    footer { padding: 32px 20px; }
+    .footer-links { gap: 18px; flex-wrap: wrap; }
+
+    .hero-actions { flex-direction: column; align-items: stretch; gap: 10px; margin-bottom: 48px; }
+    .hero-actions .btn-primary, .hero-actions .btn-ghost {
+      width: 100%; justify-content: center; padding: 14px 20px;
+    }
+
+    /* Listing form on mobile */
+    .listing-form { padding: 20px; border-radius: 12px; }
+    .form-row { gap: 10px; margin-bottom: 10px; }
+    .form-submit { flex-direction: column; align-items: stretch; gap: 10px; }
+    .form-submit .btn-white { width: 100%; text-align: center; }
+    .form-status { text-align: center; }
+
+    /* Steps / cards */
+    .step { padding: 28px 24px; }
+    .versus-card { padding: 28px 24px; }
+    .t-card { padding: 24px 22px; }
+    .t-quote { font-size: 15px; }
+
+    /* City tags */
+    .city-tag { padding: 9px 16px; font-size: 13px; }
+
+    /* FAQ */
+    .faq-q { font-size: 15px; padding: 20px 0; gap: 12px; }
+    .faq-a { font-size: 13px; }
   }
 </style>
 </head>
@@ -437,7 +473,6 @@
       </defs>
 
       <circle cx="210" cy="210" r="150" fill="none" stroke="rgba(26,26,24,0.07)" stroke-width="1"/>
-      <circle cx="210" cy="210" r="90" fill="none" stroke="rgba(26,26,24,0.04)" stroke-width="1"/>
 
       <path d="M 210 95 C 330 115, 360 200, 340 300" fill="none" stroke="#8C1515"
         stroke-width="1.5" stroke-dasharray="8 5" opacity="0.6"
@@ -721,7 +756,6 @@
     </div>
   </form>
 
-  <p class="cta-sub">Or: <a href="app.html" class="cta-link">admin console →</a></p>
 </section>
 
 <style>
@@ -816,8 +850,7 @@
   <div class="footer-links">
     <a href="#how">How it works</a>
     <a href="#faq">FAQ</a>
-    <a href="app.html">Matcher</a>
-    <a href="https://github.com/vkotaca/cyclestay">GitHub</a>
+    <a href="app.html">Admin console</a>
   </div>
   <div class="footer-note">Built at Stanford GSB · Spring 2026</div>
 </footer>

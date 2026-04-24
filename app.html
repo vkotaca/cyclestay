@@ -88,13 +88,8 @@
 
   <div class="panel">
     <h2>Data source</h2>
-    <p class="muted">Synthetic generates 200 fake profiles for demos. Real submissions pulls live listings from Airtable.</p>
-    <div class="source-toggle">
-      <label class="radio"><input type="radio" name="source" value="synthetic" checked /> Synthetic (demo)</label>
-      <label class="radio"><input type="radio" name="source" value="mixed" /> Real + Synthetic (mixed)</label>
-      <label class="radio"><input type="radio" name="source" value="real" /> Real only (Airtable)</label>
-      <span id="source-status" class="muted"></span>
-    </div>
+    <p class="muted">Real Airtable submissions are mixed into a pool of synthetic profiles so live listings can find matches. Real entries are marked with a <span class="real-badge">\u2605</span> badge in cycle chains.</p>
+    <div id="source-status" class="muted"></div>
   </div>
 
   <div class="panel">

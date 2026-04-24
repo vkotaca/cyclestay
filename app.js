@@ -309,34 +309,25 @@ function showCityCycles(city) {
 
 async function runAll() {
   const params = readParams();
-  const source = window.CS_ADMIN?.getDataSource?.() || "synthetic";
   const sourceStatus = document.getElementById("source-status");
 
-  if (source === "real" || source === "mixed") {
-    try {
-      if (sourceStatus) sourceStatus.textContent = "Loading submissions…";
-      const realProfiles = await window.CS_ADMIN.fetchListings();
-      if (!realProfiles.length && source === "real") {
-        if (sourceStatus) sourceStatus.textContent = "No Airtable submissions yet — falling back to synthetic.";
-        lastProfiles = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
-      } else if (source === "mixed") {
-        const synthetic = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
-        // Offset real IDs to avoid collision with synthetic IDs.
-        const offset = synthetic.length;
-        const realWithOffsetIds = realProfiles.map((p, i) => ({ ...p, id: offset + i }));
-        lastProfiles = [...synthetic, ...realWithOffsetIds];
-        if (sourceStatus) sourceStatus.textContent = `${realProfiles.length} real + ${synthetic.length} synthetic profiles in the pool.`;
-      } else {
-        lastProfiles = realProfiles;
-        if (sourceStatus) sourceStatus.textContent = `Loaded ${realProfiles.length} real submissions from Airtable.`;
-      }
-    } catch (e) {
-      if (sourceStatus) sourceStatus.textContent = `Fetch failed (${e.message}) — falling back to synthetic.`;
-      lastProfiles = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
+  // Always mixed: real Airtable submissions + synthetic profiles.
+  const synthetic = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
+  let realProfiles = [];
+  try {
+    if (sourceStatus) sourceStatus.textContent = "Loading submissions…";
+    realProfiles = await window.CS_ADMIN.fetchListings();
+    const offset = synthetic.length;
+    const realWithOffsetIds = realProfiles.map((p, i) => ({ ...p, id: offset + i }));
+    lastProfiles = [...synthetic, ...realWithOffsetIds];
+    if (sourceStatus) {
+      sourceStatus.textContent = realProfiles.length
+        ? `${realProfiles.length} real + ${synthetic.length} synthetic profiles in the pool.`
+        : `${synthetic.length} synthetic profiles (no real submissions yet).`;
     }
-  } else {
-    if (sourceStatus) sourceStatus.textContent = "";
-    lastProfiles = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
+  } catch (e) {
+    if (sourceStatus) sourceStatus.textContent = `Airtable fetch failed (${e.message}) — showing synthetic only.`;
+    lastProfiles = synthetic;
   }
   lastResult = runMatcher(lastProfiles, params);
   lastBilateralOnly = runBilateralOnly(lastProfiles, params);
@@ -361,14 +352,6 @@ async function runAll() {
 }
 
 document.getElementById("run").addEventListener("click", () => { runAll(); });
-
-// Wire the data source radio buttons
-document.querySelectorAll('input[name="source"]').forEach(r => {
-  r.addEventListener("change", () => {
-    if (window.CS_ADMIN) window.CS_ADMIN.setDataSource(r.value);
-    runAll();
-  });
-});
 
 // Expose re-run hook for admin.js (called after successful admin login)
 window.CS_APP_READY = () => { runAll(); };
