@@ -58,7 +58,7 @@
       <h1>CycleStay Admin</h1>
       <p class="sub">Multi-way sublease exchange — matching engine prototype</p>
     </div>
-    <button id="admin-logout" class="btn-logout" title="Lock admin session">\u{1F512} Lock</button>
+    <button id="admin-logout" class="btn-logout" title="Lock admin session">&#x1F512; Lock</button>
   </div>
 </header>
 
@@ -76,8 +76,8 @@
   <div class="panel hero">
     <div class="hero-main">
       <div class="hero-label">Estimated student savings this run</div>
-      <div class="hero-value" id="savings">$0</div>
-      <div class="hero-sub" id="savings-sub">Run a match to compute.</div>
+      <div class="hero-value" id="savings">—</div>
+      <div class="hero-sub" id="savings-sub">Computing…</div>
     </div>
     <div class="hero-side">
       <div class="hero-stat"><div class="hero-stat-label">Matched in cycles</div><div class="hero-stat-value" id="hs-cycle">—</div></div>
@@ -88,7 +88,7 @@
 
   <div class="panel">
     <h2>Submission pool</h2>
-    <p class="muted">Live submissions from Airtable are combined with the rest of the current pool. Live entries are marked with a <span class="real-badge">\u2605</span> badge in cycle chains so you can spot them.</p>
+    <p class="muted">Live submissions from Airtable are combined with the rest of the current pool. Live entries are marked with a <span class="real-badge">&#x2605;</span> badge in cycle chains so you can spot them.</p>
     <div id="source-status" class="muted"></div>
   </div>
 
@@ -152,7 +152,7 @@
     <h2>Cycle playback</h2>
     <p class="muted">Pick a cycle to animate across the map. Or click "Perturb" to simulate a random dropout and watch the repair attempt.</p>
     <div class="actions">
-      <button id="perturb-btn" class="btn-secondary">\u26a1 Perturb random match</button>
+      <button id="perturb-btn" class="btn-secondary">&#x26A1; Perturb random match</button>
       <span id="perturb-status" class="muted"></span>
     </div>
     <div id="cycle-picker" class="cycle-picker"></div>
