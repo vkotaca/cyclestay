@@ -116,16 +116,11 @@
       <label class="checkbox"><input id="optimize" type="checkbox" /> Use near-optimal selection (local search)<span class="tip" data-tip="When unchecked: greedy selector (fast). When checked: runs 60 randomized restarts to find a better combination of cycles. Gains ~1-3pp match rate at the cost of ~500ms.">&#9432;</span></label>
     </div>
     <div class="actions">
-      <button id="run">Generate &amp; Match</button>
       <button id="share-link" class="btn-secondary">Copy shareable link</button>
       <button id="export-png" class="btn-secondary">Export map PNG</button>
       <button id="export-md" class="btn-secondary">Export summary</button>
-      <span id="summary" class="muted"></span>
     </div>
-    <div class="spark-wrap">
-      <div class="spark-label">Match rate vs. market skew</div>
-      <div id="sparkline"></div>
-    </div>
+    <div id="summary" class="muted" style="margin-top:10px"></div>
   </div>
 
   <div class="panel">
@@ -254,6 +249,6 @@
 <script src="matcher.js?v=3"></script>
 <script src="viz.js?v=3"></script>
 <script src="admin.js?v=1"></script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

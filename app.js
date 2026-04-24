@@ -347,24 +347,24 @@ async function runAll() {
   renderHeatmap(document.getElementById("heatmap"), lastResult);
   renderCyclePicker(lastResult);
 
-  computeSparkline(params);
-
   // Sync URL
   history.replaceState(null, "", paramsToHash(params));
 }
 
-document.getElementById("run").addEventListener("click", () => { runAll(); });
-
 // Expose re-run hook for admin.js (called after successful admin login)
 window.CS_APP_READY = () => { runAll(); };
 
-// Live sparkline as user drags skew
-let skewTimer = null;
-document.getElementById("skew").addEventListener("input", () => {
-  clearTimeout(skewTimer);
-  skewTimer = setTimeout(() => {
-    computeSparkline(readParams());
-  }, 120);
+// Auto re-run whenever a matching parameter changes (debounced).
+let paramTimer = null;
+function scheduleRun() {
+  clearTimeout(paramTimer);
+  paramTimer = setTimeout(() => { runAll(); }, 180);
+}
+["w-date", "w-unit", "w-con", "cap", "minov", "optimize"].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener("input", scheduleRun);
+  el.addEventListener("change", scheduleRun);
 });
 
 // ----- Personas -----
