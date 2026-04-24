@@ -53,6 +53,7 @@ module.exports = async (req, res) => {
       });
       if (!atResp.ok) {
         const detail = await atResp.text();
+        console.error("Airtable POST failed", atResp.status, detail, "payload:", JSON.stringify(body));
         return res.status(502).json({ error: "Airtable write failed", detail });
       }
       return res.status(200).json({ ok: true });
