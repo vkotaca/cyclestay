@@ -808,6 +808,13 @@ tr:hover td { background: var(--surface-2); }
 }
 .radio input { accent-color: var(--cardinal); }
 
+.real-badge {
+  display: inline-block;
+  color: var(--cardinal);
+  font-size: 11px;
+  margin-right: 4px;
+}
+
 /* Mini action button in tables */
 .mini-btn {
   background: transparent;

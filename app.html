@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CycleStay — Multi-Way Sublease Exchange</title>
-<link rel="stylesheet" href="styles.css?v=9" />
+<link rel="stylesheet" href="styles.css?v=10" />
 </head>
 <body>
 
@@ -91,7 +91,8 @@
     <p class="muted">Synthetic generates 200 fake profiles for demos. Real submissions pulls live listings from Airtable.</p>
     <div class="source-toggle">
       <label class="radio"><input type="radio" name="source" value="synthetic" checked /> Synthetic (demo)</label>
-      <label class="radio"><input type="radio" name="source" value="real" /> Real submissions (Airtable)</label>
+      <label class="radio"><input type="radio" name="source" value="mixed" /> Real + Synthetic (mixed)</label>
+      <label class="radio"><input type="radio" name="source" value="real" /> Real only (Airtable)</label>
       <span id="source-status" class="muted"></span>
     </div>
   </div>
@@ -258,6 +259,6 @@
 <script src="matcher.js?v=3"></script>
 <script src="viz.js?v=3"></script>
 <script src="admin.js?v=1"></script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

@@ -127,7 +127,8 @@ function renderCycles(result) {
     el.className = "cycle len-" + c.nodes.length;
     const chain = c.nodes.map(n => {
       const p = map.get(n);
-      return `${p.name} (${p.origin}\u2192${p.dest})`;
+      const badge = p.recordId ? '<span class="real-badge" title="Real Airtable submission">\u2605</span>' : "";
+      return `${badge}${p.name} (${p.origin}\u2192${p.dest})`;
     }).join(' <span class="arrow">\u2192</span> ');
     const first = map.get(c.nodes[0]);
     el.innerHTML = `
@@ -311,15 +312,23 @@ async function runAll() {
   const source = window.CS_ADMIN?.getDataSource?.() || "synthetic";
   const sourceStatus = document.getElementById("source-status");
 
-  if (source === "real") {
+  if (source === "real" || source === "mixed") {
     try {
       if (sourceStatus) sourceStatus.textContent = "Loading submissions…";
-      lastProfiles = await window.CS_ADMIN.fetchListings();
-      if (!lastProfiles.length) {
+      const realProfiles = await window.CS_ADMIN.fetchListings();
+      if (!realProfiles.length && source === "real") {
         if (sourceStatus) sourceStatus.textContent = "No Airtable submissions yet — falling back to synthetic.";
         lastProfiles = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
+      } else if (source === "mixed") {
+        const synthetic = generateProfiles({ n: params.n, seed: params.seed, skew: params.skew });
+        // Offset real IDs to avoid collision with synthetic IDs.
+        const offset = synthetic.length;
+        const realWithOffsetIds = realProfiles.map((p, i) => ({ ...p, id: offset + i }));
+        lastProfiles = [...synthetic, ...realWithOffsetIds];
+        if (sourceStatus) sourceStatus.textContent = `${realProfiles.length} real + ${synthetic.length} synthetic profiles in the pool.`;
       } else {
-        if (sourceStatus) sourceStatus.textContent = `Loaded ${lastProfiles.length} real submissions from Airtable.`;
+        lastProfiles = realProfiles;
+        if (sourceStatus) sourceStatus.textContent = `Loaded ${realProfiles.length} real submissions from Airtable.`;
       }
     } catch (e) {
       if (sourceStatus) sourceStatus.textContent = `Fetch failed (${e.message}) — falling back to synthetic.`;
