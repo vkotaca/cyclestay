@@ -677,7 +677,7 @@ document.getElementById("cta-tour").addEventListener("click", () => { startTour(
 // ----- Tour -----
 const TOUR_STEPS = [
   { sel: "#savings", text: "The headline number: estimated student savings from matched-in-cycle pairings, at ~$4,500 saved per user vs. Airbnb rates." },
-  { sel: "#compare-bars", text: "The platform's thesis in one chart: cycle-finding matches ~20 percentage points more students than bilateral-only swaps on the same data." },
+  { sel: "#compare-bars", text: "The platform's thesis in one chart: cycle-finding matches ~30 percentage points more students than bilateral-only swaps on the same data." },
   { sel: "#cycles", text: "Each cycle is a closed loop — click one to see the students as cards with date bars, and hit Swap to substitute a participant." },
   { sel: ".persona-row", text: "Load realistic parameter sets for different student segments. Each re-runs the matcher instantly." },
   { sel: "#sparkline", text: "Live sparkline: drag the Skew slider and watch match rate change. Shows why concentrated intern markets lift cycle-finding." },
