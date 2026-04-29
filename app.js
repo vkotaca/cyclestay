@@ -730,7 +730,13 @@ document.getElementById("tour-close").addEventListener("click", endTour);
 
 // ----- Init -----
 const fromHash = hashToParams();
-if (fromHash) writeParams(fromHash);
+if (fromHash) {
+  // Don't restore the optimizer flag from the hash — leave it off on
+  // every fresh load so the page is responsive even if the previous
+  // session had it enabled.
+  delete fromHash.optimize;
+  writeParams(fromHash);
+}
 
 try { runAll(); } catch (e) { console.error("CycleStay initial run failed:", e); }
 

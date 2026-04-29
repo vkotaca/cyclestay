@@ -102,7 +102,9 @@ function selectNonOverlapping(cycles) {
 // Randomized-restart optimizer: perturb the score-based ordering and keep
 // the selection with highest total score over R restarts. In practice this
 // gets within ~1% of ILP optimal on this problem size.
-function selectOptimized(cycles, restarts = 60, seed = 1) {
+// Bails to plain greedy if the cycle pool is huge (would take seconds).
+function selectOptimized(cycles, restarts = 25, seed = 1) {
+  if (cycles.length > 4000) return selectNonOverlapping(cycles);
   let a = seed >>> 0;
   function rng() { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }
   let best = null, bestTotal = -Infinity;
@@ -150,7 +152,7 @@ function runMatcher(profiles, opts) {
   const adj = buildGraph(profiles, weights, opts.minOverlap);
   const cycles = findCycles(adj, opts.cap);
   const selector = opts.optimize ? selectOptimized : selectNonOverlapping;
-  const { picked, used } = selector(cycles, 60, opts.seed || 1);
+  const { picked, used } = selector(cycles, 25, opts.seed || 1);
   const bilateral = bilateralFallback(profiles, adj, used);
 
   return {
