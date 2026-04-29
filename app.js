@@ -317,7 +317,11 @@ async function runAll() {
   let realProfiles = [];
   try {
     if (sourceStatus) sourceStatus.textContent = "Loading submissions…";
-    realProfiles = await window.CS_ADMIN.fetchListings();
+    // Hard 4-second timeout so a slow/failing Airtable call doesn't freeze the UI.
+    const timeout = new Promise((_, rej) =>
+      setTimeout(() => rej(new Error("Airtable timeout (4s)")), 4000)
+    );
+    realProfiles = await Promise.race([window.CS_ADMIN.fetchListings(), timeout]);
     const offset = baseline.length;
     const realWithOffsetIds = realProfiles.map((p, i) => ({ ...p, id: offset + i }));
     lastProfiles = [...baseline, ...realWithOffsetIds];
@@ -328,7 +332,7 @@ async function runAll() {
         : `${total} submissions in the pool (no new live submissions this round).`;
     }
   } catch (e) {
-    if (sourceStatus) sourceStatus.textContent = `Airtable fetch failed (${e.message}).`;
+    if (sourceStatus) sourceStatus.textContent = `Airtable fetch failed (${e.message}) — using baseline pool.`;
     lastProfiles = baseline;
   }
   lastResult = runMatcher(lastProfiles, params);
