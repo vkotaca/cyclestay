@@ -835,8 +835,24 @@
         </select>
       </label>
     </div>
+
+    <div class="photo-upload" aria-disabled="true">
+      <div class="photo-upload-head">
+        <span class="photo-upload-label">Apartment photos</span>
+        <span class="photo-upload-badge">Coming soon</span>
+      </div>
+      <div class="photo-upload-body">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <path d="m21 15-5-5L5 21"/>
+        </svg>
+        <span class="photo-upload-hint">Drag &amp; drop up to 6 photos &mdash; we&rsquo;ll match you to people who like what they see.</span>
+      </div>
+    </div>
+
     <div class="form-submit">
-      <button type="submit" class="btn-white">Submit listing →</button>
+      <button type="submit" class="btn-white">Submit listing &rarr;</button>
       <span id="form-status" class="form-status"></span>
     </div>
   </form>
@@ -876,6 +892,57 @@
   outline-offset: 1px;
 }
 .form-submit { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+.photo-upload {
+  margin: 16px 0 4px;
+  padding: 14px 16px;
+  border: 1.5px dashed rgba(255,255,255,0.4);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  cursor: not-allowed;
+  position: relative;
+  opacity: 0.78;
+}
+.photo-upload-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.photo-upload-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: rgba(255,255,255,0.85);
+  text-transform: none;
+}
+.photo-upload-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.25);
+}
+.photo-upload-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255,255,255,0.65);
+  font-size: 13px;
+}
+.photo-upload-body svg {
+  flex-shrink: 0;
+  color: rgba(255,255,255,0.55);
+}
+.photo-upload-hint { line-height: 1.4; }
+@media (max-width: 640px) {
+  .photo-upload-body { font-size: 12px; }
+}
 .form-status { color: rgba(255,255,255,0.92); font-size: 13px; }
 .form-status.error { color: #FFDDDD; }
 .cta-sub { margin-top: 22px; font-size: 13px; color: rgba(255,255,255,0.55); }
