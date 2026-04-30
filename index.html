@@ -1390,22 +1390,29 @@
 
       const nation = window.topojson.feature(us, us.objects.nation);
 
-      // us-atlas data is in raw lon/lat — project through Albers USA at the
-      // standard scale/translate that fits the 975×610 viewBox.
-      const projection = window.d3.geoAlbersUsa().scale(1300).translate([487.5, 305]);
+      // Plain Albers (continental US only) — drops the Alaska/Hawaii insets
+      // that geoAlbersUsa would otherwise composite into the bottom-left.
+      const projection = window.d3.geoAlbers()
+        .rotate([96, 0])
+        .center([-0.6, 38.7])
+        .parallels([29.5, 45.5])
+        .scale(1300)
+        .translate([487.5, 305]);
       const pathGen = window.d3.geoPath(projection);
       const nationD = pathGen(nation);
 
       const cities = [
         { name: 'San Francisco',   short: 'SF',      lonlat: [-122.4, 37.8], offsetX:  74, offsetY:   4 },
         { name: 'Los Angeles',     short: 'LA',      lonlat: [-118.2, 34.1], offsetX:  68, offsetY:  18 },
-        { name: 'Seattle',         short: 'Seattle', lonlat: [-122.3, 47.6], offsetX:  46, offsetY:  -8 },
+        { name: 'Seattle',         short: 'Seattle', lonlat: [-122.3, 47.6], offsetX:  50, offsetY:  -8 },
         { name: 'Austin',          short: 'Austin',  lonlat: [-97.7,  30.3], offsetX:   0, offsetY:  28 },
         { name: 'Chicago',         short: 'Chicago', lonlat: [-87.6,  41.9], offsetX:  52, offsetY:   4 },
         { name: 'Miami',           short: 'Miami',   lonlat: [-80.2,  25.8], offsetX:  44, offsetY:   4 },
-        { name: 'Washington D.C.', short: 'DC',      lonlat: [-77.0,  38.9], offsetX:  90, offsetY:   4 },
-        { name: 'New York City',   short: 'NYC',     lonlat: [-74.0,  40.7], offsetX:  76, offsetY: -16 },
-        { name: 'Boston',          short: 'Boston',  lonlat: [-71.1,  42.4], offsetX:  60, offsetY: -22 },
+        // East-coast labels flipped to the LEFT of their pins so they don't
+        // extend past the right edge of the viewBox.
+        { name: 'Washington D.C.', short: 'DC',      lonlat: [-77.0,  38.9], offsetX: -90, offsetY:  16 },
+        { name: 'New York City',   short: 'NYC',     lonlat: [-74.0,  40.7], offsetX: -82, offsetY:   2 },
+        { name: 'Boston',          short: 'Boston',  lonlat: [-71.1,  42.4], offsetX: -56, offsetY: -16 },
       ];
 
       const NS = 'http://www.w3.org/2000/svg';
@@ -1418,6 +1425,74 @@
       outline.setAttribute('class', 'us-outline');
       outline.setAttribute('d', nationD);
       svg.appendChild(outline);
+
+      // Bouncing flow arrows between random city pairs
+      const flowsGroup = document.createElementNS(NS, 'g');
+      flowsGroup.setAttribute('class', 'cities-flows');
+      svg.appendChild(flowsGroup);
+
+      const NUM_FLOWS = 16;
+      const cityProjected = cities.map(c => ({ c, p: projection(c.lonlat) })).filter(x => x.p);
+      for (let i = 0; i < NUM_FLOWS; i++) {
+        const a = cityProjected[Math.floor(Math.random() * cityProjected.length)];
+        let b = cityProjected[Math.floor(Math.random() * cityProjected.length)];
+        let guard = 0;
+        while (b === a && guard++ < 6) b = cityProjected[Math.floor(Math.random() * cityProjected.length)];
+        if (a === b) continue;
+
+        const [x1, y1] = a.p;
+        const [x2, y2] = b.p;
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const len = Math.hypot(dx, dy) || 1;
+        // Curve perpendicular to the line, alternating bow direction
+        const bow = (i % 2 === 0 ? 0.22 : -0.22);
+        const nx = -dy / len;
+        const ny = dx / len;
+        const cx = (x1 + x2) / 2 + nx * len * bow;
+        const cy = (y1 + y2) / 2 + ny * len * bow;
+        const d = `M ${x1.toFixed(1)} ${y1.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+
+        // Faint dashed arc
+        const arc = document.createElementNS(NS, 'path');
+        arc.setAttribute('d', d);
+        arc.setAttribute('fill', 'none');
+        arc.setAttribute('stroke', '#8C1515');
+        arc.setAttribute('stroke-width', '1');
+        arc.setAttribute('stroke-dasharray', '3 5');
+        arc.setAttribute('opacity', '0.18');
+        flowsGroup.appendChild(arc);
+
+        // Small arrow head (a triangle) that travels along the path
+        const head = document.createElementNS(NS, 'path');
+        head.setAttribute('d', 'M -5 -3 L 5 0 L -5 3 Z');
+        head.setAttribute('fill', '#8C1515');
+        head.setAttribute('opacity', '0.85');
+        flowsGroup.appendChild(head);
+
+        const motion = document.createElementNS(NS, 'animateMotion');
+        const dur = 3.5 + Math.random() * 3.5;
+        motion.setAttribute('dur', dur.toFixed(2) + 's');
+        motion.setAttribute('repeatCount', 'indefinite');
+        motion.setAttribute('begin', '-' + (Math.random() * dur).toFixed(2) + 's');
+        motion.setAttribute('rotate', 'auto');
+        motion.setAttribute('path', d);
+        head.appendChild(motion);
+
+        // Trailing fading dot for a "comet" feel
+        const tail = document.createElementNS(NS, 'circle');
+        tail.setAttribute('r', 2.2);
+        tail.setAttribute('fill', '#8C1515');
+        tail.setAttribute('opacity', '0.55');
+        flowsGroup.appendChild(tail);
+        const tailMotion = document.createElementNS(NS, 'animateMotion');
+        tailMotion.setAttribute('dur', dur.toFixed(2) + 's');
+        tailMotion.setAttribute('repeatCount', 'indefinite');
+        const tailLag = -((Math.random() * dur) - 0.18);
+        tailMotion.setAttribute('begin', tailLag.toFixed(2) + 's');
+        tailMotion.setAttribute('path', d);
+        tail.appendChild(tailMotion);
+      }
 
       cities.forEach((c) => {
         const projected = projection(c.lonlat);
