@@ -238,7 +238,7 @@ function renderSankey(container, result) {
                     C ${cx1} ${y1Top}, ${cx1} ${y2Top}, ${rightX - 20} ${y2Top}
                     L ${rightX - 20} ${y2Bot}
                     C ${cx1} ${y2Bot}, ${cx1} ${y1Bot}, ${leftX + 20} ${y1Bot} Z`;
-      const delay = (ribbonIdx * 0.27) % 3.2;
+      const delay = (ribbonIdx * 0.13) % 1.6;
       ribbonIdx++;
       svg += `<path d="${path}" fill="#8C1515" opacity="${0.15 + 0.5 * (f / totalOut)}" stroke="none" class="sankey-ribbon" style="animation-delay:-${delay.toFixed(2)}s"/>`;
     }
