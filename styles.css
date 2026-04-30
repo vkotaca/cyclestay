@@ -684,6 +684,18 @@ tr:hover td { background: var(--surface-2); }
   80%  { opacity: 0; }
   100% { r: 26; opacity: 0; }
 }
+
+/* Sankey ribbons — gentle breathing fill so the diagram feels alive.
+   Element opacity is preserved (proportional to flow); fill-opacity
+   multiplies on top, so high-volume ribbons stay more visible than
+   low-volume ones throughout the cycle. */
+.sankey-ribbon {
+  animation: sankey-flow 3.2s ease-in-out infinite;
+}
+@keyframes sankey-flow {
+  0%, 100% { fill-opacity: 0.45; }
+  50%      { fill-opacity: 1; }
+}
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .two-col > div { min-width: 0; }
 .two-col h2 { margin-top: 0; }

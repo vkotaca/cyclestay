@@ -186,7 +186,7 @@ function animatePerturb(container, result, perturbResult) {
 function renderSankey(container, result) {
   const WIDTH = 900, HEIGHT = 500;
   const cities = Object.keys(CITY_COORDS);
-  const leftX = 60, rightX = WIDTH - 60;
+  const leftX = 110, rightX = WIDTH - 110;
   const colGap = 4;
   const outCount = Object.fromEntries(cities.map(c => [c, 0]));
   const inCount = Object.fromEntries(cities.map(c => [c, 0]));
@@ -215,6 +215,7 @@ function renderSankey(container, result) {
   const R = layout(inCount);
   let svg = `<svg viewBox="0 0 ${WIDTH} ${HEIGHT}" xmlns="http://www.w3.org/2000/svg" class="map-svg">`;
   svg += `<rect width="${WIDTH}" height="${HEIGHT}" fill="#FAFAF7"/>`;
+  let ribbonIdx = 0;
   for (const o of cities) {
     const oRect = L[o];
     if (outCount[o] === 0) continue;
@@ -237,7 +238,9 @@ function renderSankey(container, result) {
                     C ${cx1} ${y1Top}, ${cx1} ${y2Top}, ${rightX - 20} ${y2Top}
                     L ${rightX - 20} ${y2Bot}
                     C ${cx1} ${y2Bot}, ${cx1} ${y1Bot}, ${leftX + 20} ${y1Bot} Z`;
-      svg += `<path d="${path}" fill="#8C1515" opacity="${0.15 + 0.5 * (f / totalOut)}" stroke="none"/>`;
+      const delay = (ribbonIdx * 0.27) % 3.2;
+      ribbonIdx++;
+      svg += `<path d="${path}" fill="#8C1515" opacity="${0.15 + 0.5 * (f / totalOut)}" stroke="none" class="sankey-ribbon" style="animation-delay:-${delay.toFixed(2)}s"/>`;
     }
   }
   for (const c of cities) {
