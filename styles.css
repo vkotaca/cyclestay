@@ -363,6 +363,85 @@ input[type="checkbox"] { accent-color: var(--cardinal); }
   z-index: 50;
 }
 .tip:hover::after, .tip:hover::before { opacity: 1; }
+
+/* Inline glossary terms (dotted underline + hover tooltip) */
+.glossary {
+  border-bottom: 1px dotted var(--cool-grey);
+  cursor: help;
+  position: relative;
+}
+.glossary:hover { color: var(--cardinal); border-bottom-color: var(--cardinal); }
+.glossary::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  background: var(--black);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: 0;
+  text-transform: none;
+  width: 280px;
+  white-space: normal;
+  text-align: left;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+  z-index: 50;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+.glossary:hover::after { opacity: 1; }
+@media (max-width: 720px) {
+  .glossary::after { width: 220px; left: 0; right: auto; }
+}
+
+/* Intro card */
+.intro-card {
+  background: var(--cardinal);
+  color: #fff;
+  border: none;
+  position: relative;
+}
+.intro-card h2 {
+  color: #fff;
+  border-bottom-color: rgba(255,255,255,0.25);
+  padding-bottom: 10px;
+}
+.intro-card p {
+  margin: 0;
+  color: rgba(255,255,255,0.92);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.intro-card .glossary {
+  color: #fff;
+  border-bottom-color: rgba(255,255,255,0.5);
+}
+.intro-card .glossary:hover {
+  color: #ffd6d6;
+  border-bottom-color: #fff;
+}
+.intro-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  color: rgba(255,255,255,0.7);
+  border: none;
+  font-size: 22px;
+  font-weight: 400;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.intro-close:hover { background: rgba(255,255,255,0.15); color: #fff; }
 label span {
   color: var(--black);
   font-size: 12px;

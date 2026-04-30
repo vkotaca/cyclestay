@@ -33,6 +33,19 @@ document.querySelectorAll(".tab").forEach(btn => {
   });
 });
 
+// Intro card: hide-forever via localStorage
+const introCard = document.getElementById("intro-card");
+const introHide = document.getElementById("intro-hide");
+if (introCard && localStorage.getItem("cs_intro_hidden") === "1") {
+  introCard.style.display = "none";
+}
+if (introHide) {
+  introHide.addEventListener("click", () => {
+    localStorage.setItem("cs_intro_hidden", "1");
+    if (introCard) introCard.style.display = "none";
+  });
+}
+
 // ----- Sliders -----
 function bindRange(id) {
   const el = document.getElementById(id);

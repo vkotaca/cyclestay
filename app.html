@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CycleStay — Multi-Way Sublease Exchange</title>
-<link rel="stylesheet" href="styles.css?v=10" />
+<link rel="stylesheet" href="styles.css?v=11" />
 </head>
 <body>
 
@@ -86,9 +86,23 @@
     </div>
   </div>
 
+  <div class="panel intro-card" id="intro-card">
+    <button id="intro-hide" class="intro-close" title="Hide forever">&times;</button>
+    <h2>What you&rsquo;re looking at</h2>
+    <p>
+      This is the matching engine running over a pool of submissions
+      from real students plus a baseline cohort. It builds a compatibility
+      graph, finds <span class="glossary" data-tip="A closed chain of 2–4 students whose moves form a loop (e.g., SF → NYC → Austin → SF). Everyone trades keys; no cash changes hands between participants.">cycles</span>
+      &mdash; multi-way swaps where 2&ndash;4 students trade apartments &mdash;
+      and falls back to <span class="glossary" data-tip="A 1-for-1 pairing where two students directly swap places. The simplest match, and the only kind most other platforms can find.">bilateral</span>
+      pairs for anyone who couldn&rsquo;t fit a cycle. Tweak the parameters
+      and the run updates automatically.
+    </p>
+  </div>
+
   <div class="panel">
     <h2>Submission pool</h2>
-    <p class="muted">Live submissions from Airtable are combined with the rest of the current pool. Live entries are marked with a <span class="real-badge">&#x2605;</span> badge in cycle chains so you can spot them.</p>
+    <p class="muted">Live submissions from Airtable are combined with the rest of the current pool. Live entries are marked with a <span class="real-badge">&#x2605;</span> badge in <span class="glossary" data-tip="A closed chain of 2–4 students whose moves form a loop. Everyone in the chain trades keys; no cash changes hands between participants.">cycle</span> chains so you can spot them.</p>
     <div id="source-status" class="muted"></div>
   </div>
 
@@ -103,14 +117,14 @@
       <label>Constraint weight <span class="tip" data-tip="How much nice-to-haves (parking, transit, private room) boost the score beyond hard requirements. Hard requirements are always enforced regardless of this weight.">&#9432;</span><input id="w-con" type="range" min="0" max="1" step="0.05" value="0.2" /><span id="w-con-v">0.20</span></label>
       <label>Max cycle length <span class="tip" data-tip="Longest swap chain to look for. 2 = pairs only (bilateral). 3 = triangles (SF-NYC-Austin-SF). 4 = four-way swaps (proposal's cap). Larger cycles match more people but are harder to coordinate in real life.">&#9432;</span><input id="cap" type="number" value="4" min="2" max="5" /></label>
       <label>Min date overlap (days) <span class="tip" data-tip="Reject matches where the two students' trips overlap fewer than this many days. 42 = six weeks, filters out half-summer mismatches. Lower = more matches but some will be low-quality.">&#9432;</span><input id="minov" type="number" value="42" min="0" max="90" /></label>
-      <label class="checkbox"><input id="optimize" type="checkbox" /> Use near-optimal selection (local search)<span class="tip" data-tip="When unchecked: greedy selector (fast). When checked: runs 60 randomized restarts to find a better combination of cycles. Gains ~1-3pp match rate at the cost of ~500ms.">&#9432;</span></label>
+      <label class="checkbox"><input id="optimize" type="checkbox" /> Use <span class="glossary" data-tip="A local-search optimizer that runs 25 randomized restarts of the cycle selector and keeps the best total score. Slightly slower than greedy; usually 1–3 percentage points better.">near-optimal</span> selection (local search)<span class="tip" data-tip="When unchecked: greedy selector (fast). When checked: runs 25 randomized restarts to find a better combination of cycles. Gains ~1-3pp match rate at the cost of ~500ms.">&#9432;</span></label>
     </div>
     <div id="summary" class="muted" style="margin-top:10px"></div>
   </div>
 
   <div class="panel">
     <h2>Cycles vs. bilateral pairs</h2>
-    <p class="muted">Same data, two algorithms: bilateral-only (length-2 swaps) vs. cycle-finding (up to length 4). The lift is the platform's thesis.</p>
+    <p class="muted">Same data, two algorithms: <span class="glossary" data-tip="A 1-for-1 pairing where two students directly swap places. The simplest match — and the only kind most other platforms can find.">bilateral</span>-only (length-2 swaps) vs. cycle-finding (up to length 4). The lift is the platform&rsquo;s thesis.</p>
     <div id="compare-bars"></div>
   </div>
 
@@ -120,7 +134,7 @@
   </div>
 
   <div class="panel">
-    <h2>Bilateral fallback (top 20)</h2>
+    <h2><span class="glossary" data-tip="Plan B for students who don't fit any cycle: the engine ranks the best 1-for-1 swap from the unmatched pool, using the same scoring rules.">Bilateral fallback</span> (top 20)</h2>
     <div id="bilateral" class="results"></div>
   </div>
 </section>
@@ -135,7 +149,7 @@
 
   <div class="panel">
     <h2>Cycle playback</h2>
-    <p class="muted">Pick a cycle to animate across the map. Or click "Perturb" to simulate a random dropout and watch the repair attempt.</p>
+    <p class="muted">Pick a cycle to animate across the map. Or click &ldquo;Perturb&rdquo; to simulate a random <span class="glossary" data-tip="A matched student backing out before move-in. The matcher attempts to swap in a substitute from the unmatched pool to keep the cycle alive.">dropout</span> and watch the repair attempt.</p>
     <div class="actions">
       <button id="perturb-btn" class="btn-secondary">&#x26A1; Perturb random match</button>
       <span id="perturb-status" class="muted"></span>
@@ -170,7 +184,7 @@
   </div>
 
   <div class="panel">
-    <h2>Dropout robustness</h2>
+    <h2><span class="glossary" data-tip="A matched student backing out before move-in. The matcher attempts to swap in a substitute from the unmatched pool to keep the cycle alive.">Dropout</span> robustness</h2>
     <p class="muted">
       <b>What this answers:</b> "What happens if a student backs out at the last minute?"
       <br><br>
@@ -194,7 +208,7 @@
   </div>
 
   <div class="panel">
-    <h2>Sensitivity heatmap <span class="muted">(match rate by skew × min-overlap)</span></h2>
+    <h2><span class="glossary" data-tip="How much the match rate changes when you tweak a parameter. A robust matcher works across many conditions; a fragile one breaks at the edges.">Sensitivity</span> heatmap <span class="muted">(match rate by skew × min-overlap)</span></h2>
     <p class="muted">
       <b>What this answers:</b> "Where does the matcher break down, and where does it shine?"
       <br><br>
@@ -250,6 +264,6 @@
 <script src="matcher.js?v=4"></script>
 <script src="viz.js?v=4"></script>
 <script src="admin.js?v=1"></script>
-<script src="app.js?v=14"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>
