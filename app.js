@@ -147,7 +147,7 @@ function renderCycles(result) {
     el.innerHTML = `
       <div class="cycle-head">
         <span>Length ${c.nodes.length} cycle</span>
-        <span class="score">score ${c.avgScore.toFixed(3)}</span>
+        <span class="score"><span class="glossary" data-tip="Average compatibility (0–1) of every pairing in this cycle. It blends date overlap (50%), unit-type match (30%), and constraint satisfaction (20%). 1.0 = a perfect fit on every dimension; matches above 0.85 are very strong.">score</span> ${c.avgScore.toFixed(3)}</span>
       </div>
       <div class="chain">${chain} <span class="arrow">\u2192</span> ${first.name}</div>
       <div class="cycle-expand" hidden></div>
