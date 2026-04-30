@@ -377,25 +377,48 @@ function renderSensitivityHeatmap(container, { xValues, yValues, xLabel, yLabel,
 
 // Bars with error bars. data = [{label, mean, stdev, color?}]
 function renderErrorBars(container, data) {
-  const W = 620, H = 50 + data.length * 42, padL = 160, padR = 60;
+  const W = 720, padL = 170, padR = 130, rowH = 56;
+  const H = 36 + data.length * rowH + 30;
   let svg = `<svg viewBox="0 0 ${W} ${H}" class="map-svg">`;
   svg += `<rect width="${W}" height="${H}" fill="#FAFAF7"/>`;
   const maxV = 1;
   const barW = W - padL - padR;
+
+  // Vertical gridlines + axis labels at 0 / 25 / 50 / 75 / 100%
+  for (let p = 0; p <= 1; p += 0.25) {
+    const x = padL + p * barW;
+    const yTop = 28, yBot = 36 + data.length * rowH - 8;
+    svg += `<line x1="${x}" y1="${yTop}" x2="${x}" y2="${yBot}" stroke="#E6E5DF" stroke-width="1"/>`;
+    svg += `<text x="${x}" y="${yBot + 16}" text-anchor="middle" font-family="Source Sans Pro" font-size="10" fill="#888780">${(p * 100).toFixed(0)}%</text>`;
+  }
+
   data.forEach((d, i) => {
-    const y = 30 + i * 42;
+    const yMid = 36 + i * rowH + rowH / 2;
+    const yBar = yMid - 14;
     const len = d.mean * barW;
     const color = d.color || "#8C1515";
-    svg += `<text x="${padL - 8}" y="${y + 15}" text-anchor="end" font-family="Source Sans Pro" font-size="12" font-weight="600" fill="#53565A">${d.label}</text>`;
-    svg += `<rect x="${padL}" y="${y}" width="${len}" height="22" fill="${color}" rx="2"/>`;
-    // Error whiskers
+
+    // Left label
+    svg += `<text x="${padL - 12}" y="${yMid + 4}" text-anchor="end" font-family="Source Sans Pro" font-size="13" font-weight="600" fill="#2E2D29">${d.label}</text>`;
+    // Track
+    svg += `<rect x="${padL}" y="${yBar}" width="${barW}" height="28" fill="#EEEEE8" rx="3"/>`;
+    // Filled bar
+    svg += `<rect x="${padL}" y="${yBar}" width="${len}" height="28" fill="${color}" rx="3"/>`;
+
+    // Error whiskers in white over the colored fill so they don't fight with text.
     const eLo = Math.max(0, d.mean - d.stdev) * barW;
     const eHi = Math.min(maxV, d.mean + d.stdev) * barW;
-    svg += `<line x1="${padL + eLo}" y1="${y + 11}" x2="${padL + eHi}" y2="${y + 11}" stroke="#2E2D29" stroke-width="1.5"/>`;
-    svg += `<line x1="${padL + eLo}" y1="${y + 5}" x2="${padL + eLo}" y2="${y + 17}" stroke="#2E2D29" stroke-width="1.5"/>`;
-    svg += `<line x1="${padL + eHi}" y1="${y + 5}" x2="${padL + eHi}" y2="${y + 17}" stroke="#2E2D29" stroke-width="1.5"/>`;
-    svg += `<text x="${padL + len + 8}" y="${y + 15}" font-family="ui-monospace, monospace" font-size="12" font-weight="600" fill="#2E2D29">${(d.mean * 100).toFixed(1)}% \u00B1${(d.stdev * 100).toFixed(1)}</text>`;
+    const wY = yBar + 14;
+    svg += `<line x1="${padL + eLo}" y1="${wY}" x2="${padL + eHi}" y2="${wY}" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.85"/>`;
+    svg += `<line x1="${padL + eLo}" y1="${wY - 5}" x2="${padL + eLo}" y2="${wY + 5}" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.85"/>`;
+    svg += `<line x1="${padL + eHi}" y1="${wY - 5}" x2="${padL + eHi}" y2="${wY + 5}" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.85"/>`;
+
+    // Right value column (fixed x so rows align)
+    const vx = W - padR + 10;
+    svg += `<text x="${vx}" y="${yMid - 1}" font-family="ui-monospace, monospace" font-size="14" font-weight="700" fill="#2E2D29">${(d.mean * 100).toFixed(1)}%</text>`;
+    svg += `<text x="${vx}" y="${yMid + 14}" font-family="Source Sans Pro" font-size="10" font-weight="500" fill="#888780">\u00B1${(d.stdev * 100).toFixed(1)} pp</text>`;
   });
+
   svg += `</svg>`;
   container.innerHTML = svg;
 }
