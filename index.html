@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js" defer></script>
 <style>
   :root {
     --cardinal: #8C1515;
@@ -928,8 +930,8 @@
   <h2>Where interns are heading this summer</h2>
   <p class="cities-sub">Nine metros — coast to coast — cover roughly 80% of MBA and grad summer intern flows.</p>
 
-  <div class="cities-map-wrap">
-    <svg class="cities-map" viewBox="0 0 900 440" xmlns="http://www.w3.org/2000/svg" aria-label="Map of CycleStay network cities across the contiguous United States">
+  <div class="cities-map-wrap" id="cities-map-wrap">
+    <svg class="cities-map" id="cities-map-fallback" viewBox="0 0 900 440" xmlns="http://www.w3.org/2000/svg" aria-label="Map of CycleStay network cities across the contiguous United States">
       <!-- Lower-48 outline, ~50-vertex equirectangular projection (lon -125..-66 → x 0..900, lat 24..50 → y 0..440). -->
       <path class="us-outline" d="M 5 25
         L 30 17 L 90 14 L 180 14 L 272 14 L 360 14 L 458 11
@@ -1360,6 +1362,115 @@
       if (!isOpen) item.classList.add('open');
     });
   });
+
+  // ── Real US map via us-atlas TopoJSON (replaces hand-drawn fallback) ──
+  (async function () {
+    const fallback = document.getElementById('cities-map-fallback');
+    const wrap = document.getElementById('cities-map-wrap');
+    if (!fallback || !wrap) return;
+
+    // d3 + topojson scripts are loaded with `defer` from the head; wait until they exist.
+    function waitForLibs(ms = 4000) {
+      return new Promise((resolve, reject) => {
+        const start = performance.now();
+        (function check() {
+          if (window.d3 && window.topojson) return resolve();
+          if (performance.now() - start > ms) return reject(new Error('d3/topojson timeout'));
+          setTimeout(check, 50);
+        })();
+      });
+    }
+
+    try {
+      await waitForLibs();
+      const us = await fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/nation-10m.json').then(r => {
+        if (!r.ok) throw new Error('us-atlas fetch ' + r.status);
+        return r.json();
+      });
+
+      const nation = window.topojson.feature(us, us.objects.nation);
+      const pathGen = window.d3.geoPath();
+      const nationD = pathGen(nation);
+
+      // us-atlas pre-projects to viewBox 0 0 975 610 with Albers USA at scale=1300, translate=[487.5, 305].
+      const projection = window.d3.geoAlbersUsa().scale(1300).translate([487.5, 305]);
+
+      const cities = [
+        { name: 'San Francisco',   short: 'SF',      lonlat: [-122.4, 37.8], offsetX:  74, offsetY:   4 },
+        { name: 'Los Angeles',     short: 'LA',      lonlat: [-118.2, 34.1], offsetX:  68, offsetY:  18 },
+        { name: 'Seattle',         short: 'Seattle', lonlat: [-122.3, 47.6], offsetX:  46, offsetY:  -8 },
+        { name: 'Austin',          short: 'Austin',  lonlat: [-97.7,  30.3], offsetX:   0, offsetY:  28 },
+        { name: 'Chicago',         short: 'Chicago', lonlat: [-87.6,  41.9], offsetX:  52, offsetY:   4 },
+        { name: 'Miami',           short: 'Miami',   lonlat: [-80.2,  25.8], offsetX:  44, offsetY:   4 },
+        { name: 'Washington D.C.', short: 'DC',      lonlat: [-77.0,  38.9], offsetX:  90, offsetY:   4 },
+        { name: 'New York City',   short: 'NYC',     lonlat: [-74.0,  40.7], offsetX:  76, offsetY: -16 },
+        { name: 'Boston',          short: 'Boston',  lonlat: [-71.1,  42.4], offsetX:  60, offsetY: -22 },
+      ];
+
+      const NS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('class', 'cities-map');
+      svg.setAttribute('viewBox', '0 0 975 610');
+      svg.setAttribute('aria-label', 'Map of CycleStay network cities across the contiguous United States');
+
+      const outline = document.createElementNS(NS, 'path');
+      outline.setAttribute('class', 'us-outline');
+      outline.setAttribute('d', nationD);
+      svg.appendChild(outline);
+
+      cities.forEach((c) => {
+        const projected = projection(c.lonlat);
+        if (!projected) return;
+        const [x, y] = projected;
+        const labelX = x + c.offsetX;
+        const labelY = y + c.offsetY;
+        const labelW = c.name.length * 7.3 + 16;
+
+        const g = document.createElementNS(NS, 'g');
+        g.setAttribute('class', 'city-pin-group');
+
+        const p1 = document.createElementNS(NS, 'circle');
+        p1.setAttribute('class', 'city-pin-pulse');
+        p1.setAttribute('cx', x); p1.setAttribute('cy', y); p1.setAttribute('r', 6);
+        g.appendChild(p1);
+
+        const p2 = document.createElementNS(NS, 'circle');
+        p2.setAttribute('class', 'city-pin-pulse delay');
+        p2.setAttribute('cx', x); p2.setAttribute('cy', y); p2.setAttribute('r', 6);
+        g.appendChild(p2);
+
+        const dot = document.createElementNS(NS, 'circle');
+        dot.setAttribute('class', 'city-pin-dot');
+        dot.setAttribute('cx', x); dot.setAttribute('cy', y); dot.setAttribute('r', 6);
+        g.appendChild(dot);
+
+        const bg = document.createElementNS(NS, 'rect');
+        bg.setAttribute('class', 'city-pin-label-bg');
+        bg.setAttribute('x', labelX - labelW / 2);
+        bg.setAttribute('y', labelY - 13);
+        bg.setAttribute('width', labelW);
+        bg.setAttribute('height', 20);
+        bg.setAttribute('rx', 4);
+        g.appendChild(bg);
+
+        const text = document.createElementNS(NS, 'text');
+        text.setAttribute('class', 'city-pin-label');
+        text.setAttribute('x', labelX);
+        text.setAttribute('y', labelY + 1);
+        text.setAttribute('text-anchor', 'middle');
+        text.textContent = c.name;
+        g.appendChild(text);
+
+        svg.appendChild(g);
+      });
+
+      // Match the new aspect ratio so the wrap stops being a tall rectangle.
+      wrap.style.aspectRatio = '975 / 610';
+      fallback.replaceWith(svg);
+    } catch (e) {
+      console.warn('cities map: real outline failed to load, keeping fallback', e);
+    }
+  })();
 
   // ── Typewriter on hero H1 ──
   (function () {
