@@ -478,20 +478,47 @@ function scenario(label, overrides, params) {
   };
 }
 
+const SCENARIO_TIPS = {
+  "Balanced (skew=0)": "Toy market where every city sends and receives the same number of students. Used as a floor — the match rate here is the worst case for cycle-finding.",
+  "Realistic (skew=1)": "Skewed flow mimicking real intern markets — NYC and SF dominate, Miami is small. Higher concentration produces more overlapping paths, so match rate goes UP.",
+  "Sparse (n=60, skew=0.5)": "Only 60 students in the pool. Tests how the matcher holds up on a thin market — match rate falls because there aren't enough listings to form chains.",
+};
+const METRIC_TIPS = {
+  "Cycle match rate": "Share of students placed into a multi-way swap. The headline number — higher is better.",
+  "+ Bilateral": "Total share served once 1-for-1 fallback pairs are added on top of cycles. Shows what the platform reaches with both algorithms combined.",
+  "Cycles found": "Total number of swap chains the engine produced for this scenario.",
+  "Avg cycle length": "Average students per cycle. 2 = bilateral pairs only. 3 = triangles. Higher = more efficient packing of the network.",
+  "Avg cycle score": "Average compatibility score (0–1) across matched cycles. Reflects date overlap, unit fit, and constraint satisfaction.",
+};
+const DROPOUT_TIPS = {
+  "Cycles hit": "Cycles that lost at least one student in the random 10% dropout simulation.",
+  "Repaired": "Hit cycles that survived because the matcher could swap in a substitute from the unmatched pool.",
+  "Collapsed": "Hit cycles that lost a participant and couldn't be repaired — these would unwind in production.",
+  "Repair rate": "% of hit cycles that survived. The robustness number.",
+};
+
+function metricCard(label, value, tipMap) {
+  const tip = tipMap[label];
+  const tipHtml = tip ? `<span class="tip" data-tip="${tip.replace(/"/g, '&quot;')}">&#9432;</span>` : "";
+  return `<div class="metric"><div class="metric-label">${label} ${tipHtml}</div><div class="metric-value">${value}</div></div>`;
+}
+
 function renderEvalResults(scenarios) {
   const host = document.getElementById("eval-results");
   host.innerHTML = "";
   for (const sc of scenarios) {
+    const scenarioTip = SCENARIO_TIPS[sc.label];
+    const tipHtml = scenarioTip ? `<span class="tip" data-tip="${scenarioTip.replace(/"/g, '&quot;')}">&#9432;</span>` : "";
     const el = document.createElement("div");
     el.className = "scenario";
     el.innerHTML = `
-      <h3>${sc.label}</h3>
+      <h3>${sc.label} ${tipHtml}</h3>
       <div class="metrics">
-        <div class="metric"><div class="metric-label">Cycle match rate</div><div class="metric-value">${(sc.matchRate * 100).toFixed(1)}%</div></div>
-        <div class="metric"><div class="metric-label">+ Bilateral</div><div class="metric-value">${(sc.totalServedRate * 100).toFixed(1)}%</div></div>
-        <div class="metric"><div class="metric-label">Cycles found</div><div class="metric-value">${sc.cyclesFound}</div></div>
-        <div class="metric"><div class="metric-label">Avg cycle length</div><div class="metric-value">${sc.avgCycleLen.toFixed(2)}</div></div>
-        <div class="metric"><div class="metric-label">Avg cycle score</div><div class="metric-value">${sc.avgCycleScore.toFixed(3)}</div></div>
+        ${metricCard("Cycle match rate", `${(sc.matchRate * 100).toFixed(1)}%`, METRIC_TIPS)}
+        ${metricCard("+ Bilateral", `${(sc.totalServedRate * 100).toFixed(1)}%`, METRIC_TIPS)}
+        ${metricCard("Cycles found", sc.cyclesFound, METRIC_TIPS)}
+        ${metricCard("Avg cycle length", sc.avgCycleLen.toFixed(2), METRIC_TIPS)}
+        ${metricCard("Avg cycle score", sc.avgCycleScore.toFixed(3), METRIC_TIPS)}
       </div>
     `;
     host.appendChild(el);
@@ -508,10 +535,10 @@ function renderDropout(results) {
     el.innerHTML = `
       <h3>${label}</h3>
       <div class="metrics">
-        <div class="metric"><div class="metric-label">Cycles hit</div><div class="metric-value">${dropout.cyclesWithDropout} / ${dropout.totalCycles}</div></div>
-        <div class="metric"><div class="metric-label">Repaired</div><div class="metric-value">${dropout.repaired}</div></div>
-        <div class="metric"><div class="metric-label">Collapsed</div><div class="metric-value">${dropout.collapsed}</div></div>
-        <div class="metric"><div class="metric-label">Repair rate</div><div class="metric-value">${repairRate}%</div></div>
+        ${metricCard("Cycles hit", `${dropout.cyclesWithDropout} / ${dropout.totalCycles}`, DROPOUT_TIPS)}
+        ${metricCard("Repaired", dropout.repaired, DROPOUT_TIPS)}
+        ${metricCard("Collapsed", dropout.collapsed, DROPOUT_TIPS)}
+        ${metricCard("Repair rate", `${repairRate}%`, DROPOUT_TIPS)}
       </div>
     `;
     host.appendChild(el);
