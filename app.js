@@ -67,7 +67,7 @@ function readParams() {
     wCon: +document.getElementById("w-con").value,
     cap: +document.getElementById("cap").value,
     minOverlap: +document.getElementById("minov").value,
-    optimize: document.getElementById("optimize").checked,
+    optimize: false,
   };
 }
 
@@ -80,7 +80,6 @@ function writeParams(p) {
   if (p.wCon != null) { document.getElementById("w-con").value = p.wCon; document.getElementById("w-con-v").textContent = Number(p.wCon).toFixed(2); }
   if (p.cap != null) document.getElementById("cap").value = p.cap;
   if (p.minOverlap != null) document.getElementById("minov").value = p.minOverlap;
-  if (p.optimize != null) document.getElementById("optimize").checked = !!p.optimize;
 }
 
 // ----- URL sync -----
@@ -377,7 +376,7 @@ function scheduleRun() {
   clearTimeout(paramTimer);
   paramTimer = setTimeout(() => { runAll(); }, 180);
 }
-["w-date", "w-unit", "w-con", "cap", "minov", "optimize"].forEach(id => {
+["w-date", "w-unit", "w-con", "cap", "minov"].forEach(id => {
   const el = document.getElementById(id);
   if (!el) return;
   el.addEventListener("input", scheduleRun);
