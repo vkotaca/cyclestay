@@ -1025,6 +1025,68 @@
     fill.position.set(-3, 1, -2);
     scene.add(fill);
 
+    // Base plate — a subtle disc + concentric rings beneath the triangle so the
+    // rotation has a visual reference. Tilted to match the camera angle.
+    const baseGroup = new THREE.Group();
+    baseGroup.position.y = -1.0;
+    baseGroup.rotation.x = -Math.PI / 2; // flat in XZ plane
+    scene.add(baseGroup);
+
+    // Solid disc
+    const disc = new THREE.Mesh(
+      new THREE.CircleGeometry(1.55, 96),
+      new THREE.MeshBasicMaterial({ color: 0x8C1515, transparent: true, opacity: 0.06 })
+    );
+    baseGroup.add(disc);
+
+    // Concentric rings (3 of them) for a turntable feel
+    [0.55, 1.05, 1.5].forEach(r => {
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(r - 0.005, r, 96),
+        new THREE.MeshBasicMaterial({ color: 0x8C1515, transparent: true, opacity: 0.18, side: THREE.DoubleSide })
+      );
+      baseGroup.add(ring);
+    });
+
+    // 12 tick spokes (like clock minute marks) for visible rotation reference
+    for (let i = 0; i < 12; i++) {
+      const angle = (i / 12) * Math.PI * 2;
+      const x1 = Math.cos(angle) * 1.42;
+      const y1 = Math.sin(angle) * 1.42;
+      const x2 = Math.cos(angle) * 1.5;
+      const y2 = Math.sin(angle) * 1.5;
+      const tickGeom = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(x1, y1, 0),
+        new THREE.Vector3(x2, y2, 0),
+      ]);
+      const tick = new THREE.Line(
+        tickGeom,
+        new THREE.LineBasicMaterial({ color: 0x8C1515, transparent: true, opacity: 0.35 })
+      );
+      baseGroup.add(tick);
+    }
+
+    // Faint vertical drop-lines from each node down to the base, so the eye
+    // can read the height of each city in 3D space.
+    NODES.forEach(n => {
+      const dropGeom = new THREE.BufferGeometry().setFromPoints([
+        n.pos.clone(),
+        new THREE.Vector3(n.pos.x, -1.0, n.pos.z),
+      ]);
+      const drop = new THREE.Line(
+        dropGeom,
+        new THREE.LineDashedMaterial({
+          color: n.color,
+          dashSize: 0.06,
+          gapSize: 0.05,
+          transparent: true,
+          opacity: 0.45,
+        })
+      );
+      drop.computeLineDistances();
+      scene.add(drop);
+    });
+
     // Triangle vertices (XY plane, z=0). Slight elevation difference for depth.
     const NODES = [
       { id: 'SF',  pos: new THREE.Vector3( 0,    1.05,  0.35), color: 0x8C1515 },
