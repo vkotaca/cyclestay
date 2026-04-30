@@ -628,7 +628,6 @@ const TOUR_STEPS = [
   { sel: "#savings", text: "The headline number: estimated student savings from matched-in-cycle pairings, at ~$4,500 saved per user vs. Airbnb rates." },
   { sel: "#compare-bars", text: "The platform's thesis in one chart: cycle-finding matches ~30 percentage points more students than bilateral-only swaps on the same data." },
   { sel: "#cycles", text: "Each cycle is a closed loop — click one to see the students as cards with date bars, and hit Swap to substitute a participant." },
-  { sel: "#sparkline", text: "Live sparkline: drag the Skew slider and watch match rate change. Shows why concentrated intern markets lift cycle-finding." },
   { tab: "viz", sel: "#map", text: "National flow map. Cardinal arcs are matched, grey are unmatched demand. Click any city pin to see its cycles." },
   { tab: "viz", sel: "#cycle-picker", text: "Replay cycles across the map, or click Perturb to simulate a random dropout and watch the repair attempt." },
   { tab: "eval", sel: "#multiseed-bars", text: "Statistical confidence: multi-seed benchmarks with error bars. Runs 20 random markets and averages match rates." },
