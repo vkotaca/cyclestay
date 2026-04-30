@@ -371,22 +371,6 @@ function scheduleRun() {
   el.addEventListener("change", scheduleRun);
 });
 
-// ----- Personas -----
-const PERSONAS = {
-  mba:      { n: 180, seed: 42, skew: 0.7, wDate: 0.5, wUnit: 0.3, wCon: 0.2, cap: 4, minOverlap: 56, optimize: true },
-  mscs:     { n: 260, seed: 42, skew: 0.85, wDate: 0.55, wUnit: 0.25, wCon: 0.2, cap: 4, minOverlap: 70, optimize: true },
-  undergrad:{ n: 140, seed: 42, skew: 0.3, wDate: 0.5, wUnit: 0.3, wCon: 0.2, cap: 3, minOverlap: 35, optimize: false },
-};
-document.querySelectorAll(".persona").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const preset = PERSONAS[btn.dataset.persona];
-    if (!preset) return;
-    writeParams(preset);
-    runAll();
-    window.scrollTo({ top: document.getElementById("tab-match").offsetTop, behavior: "smooth" });
-  });
-});
-
 // ----- Export / Share -----
 document.getElementById("share-link").addEventListener("click", async () => {
   const url = location.origin + location.pathname + paramsToHash(readParams());
@@ -683,7 +667,6 @@ const TOUR_STEPS = [
   { sel: "#savings", text: "The headline number: estimated student savings from matched-in-cycle pairings, at ~$4,500 saved per user vs. Airbnb rates." },
   { sel: "#compare-bars", text: "The platform's thesis in one chart: cycle-finding matches ~30 percentage points more students than bilateral-only swaps on the same data." },
   { sel: "#cycles", text: "Each cycle is a closed loop — click one to see the students as cards with date bars, and hit Swap to substitute a participant." },
-  { sel: ".persona-row", text: "Load realistic parameter sets for different student segments. Each re-runs the matcher instantly." },
   { sel: "#sparkline", text: "Live sparkline: drag the Skew slider and watch match rate change. Shows why concentrated intern markets lift cycle-finding." },
   { tab: "viz", sel: "#map", text: "National flow map. Cardinal arcs are matched, grey are unmatched demand. Click any city pin to see its cycles." },
   { tab: "viz", sel: "#cycle-picker", text: "Replay cycles across the map, or click Perturb to simulate a random dropout and watch the repair attempt." },
