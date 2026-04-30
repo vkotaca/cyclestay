@@ -158,7 +158,11 @@
 <section id="tab-eval" class="tab-panel">
   <div class="panel">
     <h2>Scenario evaluation</h2>
-    <p class="muted">Balanced / skewed / sparse synthetic markets with the same parameters.</p>
+    <p class="muted">
+      <b>What this answers:</b> "Does the matcher work the same way in different kinds of markets?"
+      <br><br>
+      We run the same algorithm against three test markets: <b>Balanced</b> (every city sends and receives equally — a toy floor), <b>Realistic</b> (NYC and SF dominate, like real intern flows), and <b>Sparse</b> (only 60 students — what happens on a thin market). The five metrics in each card tell you the match rate, how many cycles formed, and how high-quality the matches were. A platform that works only in one regime isn't really a platform.
+    </p>
     <div class="actions">
       <button id="run-eval">Run evaluation</button>
     </div>
@@ -167,13 +171,21 @@
 
   <div class="panel">
     <h2>Dropout robustness</h2>
-    <p class="muted">Remove 10% of matched participants at random. Count cycles that collapse vs. repair via a single-node substitute.</p>
+    <p class="muted">
+      <b>What this answers:</b> "What happens if a student backs out at the last minute?"
+      <br><br>
+      We randomly remove 10% of the students who got matched, then check each affected cycle: can the matcher swap in a substitute from the unmatched pool, or does the chain collapse and force everyone in it back to Airbnb? The repair rate is the single most important number for a real launch — if it's high, the network is forgiving; if it's low, you need a deeper standby pool or a stricter commitment mechanism.
+    </p>
     <div id="dropout-results"></div>
   </div>
 
   <div class="panel">
     <h2>Multi-seed benchmarks <span class="muted">(20 seeds, error bars = 1 stdev)</span></h2>
-    <p class="muted">Bilateral-only vs. cycle-finding, averaged over many random markets to show statistical confidence in the cycle lift.</p>
+    <p class="muted">
+      <b>What this answers:</b> "Is the cycle lift real, or did we just get lucky on one run?"
+      <br><br>
+      We generate 20 different random markets (different student populations, dates, and unit mixes) and run both bilateral-only matching and cycle-finding on each. The chart shows the average match rate for each algorithm and a horizontal whisker showing how much the result varies across runs (one standard deviation). If the cycle bar sits clearly to the right of the bilateral bar with no whisker overlap, the lift holds up — it's not noise.
+    </p>
     <div class="actions">
       <button id="run-multiseed">Run 20-seed benchmark</button>
       <span id="multiseed-status" class="muted"></span>
@@ -183,7 +195,11 @@
 
   <div class="panel">
     <h2>Sensitivity heatmap <span class="muted">(match rate by skew × min-overlap)</span></h2>
-    <p class="muted">Sweep two parameters simultaneously to see which combinations break the matcher.</p>
+    <p class="muted">
+      <b>What this answers:</b> "Where does the matcher break down, and where does it shine?"
+      <br><br>
+      Most engines work well in the middle of their parameter space and fall apart at the edges. We sweep two knobs at once — market skew (how concentrated city flows are) and minimum date overlap (how strict we are about trip-date alignment) — and color each cell by the resulting match rate. Bright cardinal cells = the matcher works well; pale cells = it struggles. This is how you spot which combinations of real-world conditions you should be careful about.
+    </p>
     <div class="actions">
       <button id="run-sensitivity">Run sensitivity sweep</button>
       <span id="sensitivity-status" class="muted"></span>
