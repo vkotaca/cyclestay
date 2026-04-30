@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
 <style>
   :root {
     --cardinal: #8C1515;
@@ -396,6 +397,136 @@
   .footer-links a:hover { color: rgba(255,255,255,0.7); }
   .footer-note { font-size: 12px; color: rgba(255,255,255,0.2); }
 
+  /* ── STICKY CTA BAR (slides in after hero) ── */
+  .sticky-cta {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 250;
+    background: var(--cardinal); color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 60px; gap: 14px;
+    transform: translateY(-110%);
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    font-family: 'DM Sans', sans-serif;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .sticky-cta.show { transform: translateY(0); }
+  .sticky-cta.show ~ nav { top: 44px; }
+  .sticky-cta-msg { font-size: 13px; font-weight: 500; opacity: 0.95; }
+  .sticky-cta-msg em { font-style: italic; opacity: 0.85; font-weight: 400; }
+  .sticky-cta-btn {
+    background: #fff; color: var(--cardinal-dark);
+    padding: 7px 18px; border-radius: 999px;
+    text-decoration: none; font-weight: 600; font-size: 13px;
+    flex-shrink: 0;
+    transition: transform 0.15s, opacity 0.15s;
+  }
+  .sticky-cta-btn:hover { transform: translateY(-1px); color: var(--cardinal-dark); opacity: 0.92; }
+  @media (max-width: 760px) {
+    .sticky-cta { padding: 8px 16px; }
+    .sticky-cta-msg { font-size: 11px; }
+    .sticky-cta-btn { padding: 6px 12px; font-size: 11px; }
+  }
+
+  /* ── PULSING CTA GLOW ── */
+  @keyframes cta-glow-dark {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(140, 21, 21, 0.55); }
+    50%      { box-shadow: 0 0 0 14px rgba(140, 21, 21, 0); }
+  }
+  @keyframes cta-glow-light {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.55); }
+    50%      { box-shadow: 0 0 0 14px rgba(255, 255, 255, 0); }
+  }
+  .btn-primary { animation: cta-glow-dark 2.4s ease-in-out infinite; }
+  .btn-white   { animation: cta-glow-light 2.4s ease-in-out infinite; }
+
+  /* ── HOVER-TILT cards ── */
+  .step, .versus-card, .math-card, .t-card {
+    transition: transform 0.18s ease-out, box-shadow 0.25s, background 0.3s;
+    will-change: transform;
+  }
+
+  /* ── HERO PARTICLES ── */
+  .hero-particles {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0;
+  }
+  .hero-particles span {
+    position: absolute;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: rgba(140,21,21,0.35);
+    bottom: -10px;
+    animation: float-up linear infinite;
+  }
+  @keyframes float-up {
+    0%   { transform: translateY(0) translateX(0); opacity: 0; }
+    8%   { opacity: 1; }
+    92%  { opacity: 1; }
+    100% { transform: translateY(-110vh) translateX(40px); opacity: 0; }
+  }
+
+  /* ── SIGNATURE UNDERLINE under H1 italic emphasis ── */
+  .h1-signature {
+    display: block; max-width: 100%; height: 18px;
+    margin-top: -4px;
+  }
+  .h1-signature path {
+    stroke: var(--cardinal);
+    stroke-width: 3;
+    fill: none;
+    stroke-linecap: round;
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
+    animation: draw-sig 1.6s 0.6s ease-out forwards;
+  }
+  @keyframes draw-sig {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* ── MINI BILATERAL VS CYCLE DEMO ── */
+  .versus-mini {
+    margin-top: 40px;
+    padding: 28px 24px;
+    background: var(--white);
+    border: 0.5px solid rgba(26,26,24,0.1);
+    border-radius: 16px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  }
+  .vm-side h4 {
+    font-size: 12px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--ink-muted); margin-bottom: 12px;
+  }
+  .vm-side h4 b {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; font-weight: 400; letter-spacing: -0.5px;
+    color: var(--ink); display: block; margin-top: 6px; text-transform: none;
+  }
+  .vm-side[data-side="cycle"] h4 b { color: var(--cardinal); }
+  .vm-svg { width: 100%; height: 90px; }
+  .vm-dot { transition: fill 0.4s, opacity 0.4s; }
+  @media (max-width: 760px) { .versus-mini { grid-template-columns: 1fr; } }
+
+  /* ── DIAGONAL SECTION DIVIDERS (alternating angled bottoms) ── */
+  #hero, #versus, #math, #testimonials, #cta {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 30px), 0 100%);
+  }
+  #how, #cities, #faq {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 calc(100% - 30px));
+  }
+  #hero, #how, #versus, #math, #cities, #testimonials, #faq, #cta {
+    padding-bottom: calc(100px + 30px);
+  }
+  #hero { padding-bottom: 110px; }
+  @media (max-width: 1024px) {
+    #hero, #how, #versus, #math, #cities, #testimonials, #faq, #cta {
+      padding-bottom: calc(72px + 30px);
+    }
+  }
+  @media (max-width: 640px) {
+    #hero, #how, #versus, #math, #cities, #testimonials, #faq, #cta {
+      padding-bottom: calc(64px + 24px);
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); /* skip diagonals on phone */
+    }
+  }
+
   /* ── ANIMATIONS ── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(24px); }
@@ -476,6 +607,12 @@
 </head>
 <body>
 
+<!-- STICKY CTA BAR (slides in after hero) -->
+<div id="sticky-cta" class="sticky-cta">
+  <span class="sticky-cta-msg"><b>CycleStay</b> &mdash; <em>Trade your apartment, not your savings.</em></span>
+  <a href="#cta" class="sticky-cta-btn">Find my match &rarr;</a>
+</div>
+
 <!-- NAV -->
 <nav id="navbar">
   <a href="#" class="logo">Cycle<span>Stay</span></a>
@@ -491,6 +628,7 @@
 <section id="hero">
   <div class="hero-bg-lines"></div>
   <div class="hero-blob"></div>
+  <div class="hero-particles" id="hero-particles" aria-hidden="true"></div>
 
   <div class="hero-content">
     <p class="hero-eyebrow fade-up delay-1">
@@ -500,6 +638,9 @@
     <h1 class="fade-up delay-2">
       Trade your apartment,<br><em>not your savings.</em>
     </h1>
+    <svg class="h1-signature" viewBox="0 0 360 18" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M 4 14 C 60 4, 120 4, 180 12 C 240 18, 300 6, 356 9" />
+    </svg>
     <p class="hero-sub fade-up delay-3">
       CycleStay finds 3- and 4-way home swaps across cities so MBA and grad students can intern anywhere — without double rent, Craigslist risk, or negotiating with strangers.
     </p>
@@ -514,15 +655,15 @@
     </div>
     <div class="hero-stats fade-up delay-5">
       <div class="stat">
-        <span class="stat-n">$4,500</span>
+        <span class="stat-n" data-count="4500" data-prefix="$" data-format="comma">$4,500</span>
         <span class="stat-l">avg. summer savings</span>
       </div>
       <div class="stat">
-        <span class="stat-n">100+</span>
+        <span class="stat-n" data-count="100" data-suffix="+">100+</span>
         <span class="stat-l">matches per run</span>
       </div>
       <div class="stat">
-        <span class="stat-n">9</span>
+        <span class="stat-n" data-count="9">9</span>
         <span class="stat-l">cities in network</span>
       </div>
     </div>
@@ -664,6 +805,36 @@
       </ul>
     </div>
   </div>
+
+  <div class="versus-mini reveal" id="versus-mini">
+    <div class="vm-side" data-side="bilateral">
+      <h4>Bilateral only<b>2 / 6 matched</b></h4>
+      <svg viewBox="0 0 320 90" class="vm-svg">
+        <!-- 6 dots in a row; only 2 (positions 1 and 4) form a pair -->
+        <line x1="44"  y1="45" x2="156" y2="45" stroke="#1D9E75" stroke-width="0" class="vm-link" data-link="bilateral"/>
+        <circle cx="44"  cy="45" r="14" class="vm-dot" data-dot="b0" fill="#E5E5E0"/>
+        <circle cx="100" cy="45" r="14" class="vm-dot" data-dot="b1" fill="#E5E5E0"/>
+        <circle cx="156" cy="45" r="14" class="vm-dot" data-dot="b2" fill="#E5E5E0"/>
+        <circle cx="212" cy="45" r="14" class="vm-dot" data-dot="b3" fill="#E5E5E0"/>
+        <circle cx="268" cy="45" r="14" class="vm-dot" data-dot="b4" fill="#E5E5E0"/>
+        <circle cx="324" cy="45" r="14" class="vm-dot" data-dot="b5" fill="#E5E5E0" opacity="0"/>
+      </svg>
+    </div>
+    <div class="vm-side" data-side="cycle">
+      <h4>Cycle-finding<b>6 / 6 matched</b></h4>
+      <svg viewBox="0 0 320 90" class="vm-svg">
+        <!-- 6 dots in a row; all 6 connected via two 3-cycles -->
+        <path d="M 44 45 L 100 45 L 156 45 M 156 45 Q 100 75 44 45" fill="none" stroke="#8C1515" stroke-width="0" class="vm-link" data-link="cycle-1"/>
+        <path d="M 212 45 L 268 45 M 268 45 Q 240 18 212 45" fill="none" stroke="#8C1515" stroke-width="0" class="vm-link" data-link="cycle-2"/>
+        <circle cx="44"  cy="45" r="14" class="vm-dot" data-dot="c0" fill="#E5E5E0"/>
+        <circle cx="100" cy="45" r="14" class="vm-dot" data-dot="c1" fill="#E5E5E0"/>
+        <circle cx="156" cy="45" r="14" class="vm-dot" data-dot="c2" fill="#E5E5E0"/>
+        <circle cx="212" cy="45" r="14" class="vm-dot" data-dot="c3" fill="#E5E5E0"/>
+        <circle cx="268" cy="45" r="14" class="vm-dot" data-dot="c4" fill="#E5E5E0"/>
+        <circle cx="324" cy="45" r="14" class="vm-dot" data-dot="c5" fill="#E5E5E0" opacity="0"/>
+      </svg>
+    </div>
+  </div>
 </section>
 
 <!-- MATH -->
@@ -672,15 +843,15 @@
   <h2>Built for the student summer crunch</h2>
   <div class="math-grid" style="margin-top:56px">
     <div class="math-card reveal">
-      <div class="math-n">$4,500</div>
+      <div class="math-n" data-count="4500" data-prefix="$" data-format="comma">$4,500</div>
       <div class="math-l">average savings per student vs. a furnished sublet in SF or NYC</div>
     </div>
     <div class="math-card reveal">
-      <div class="math-n">+30pp</div>
+      <div class="math-n" data-count="30" data-prefix="+" data-suffix="pp">+30pp</div>
       <div class="math-l">match-rate lift over bilateral-only platforms in our simulations</div>
     </div>
     <div class="math-card reveal">
-      <div class="math-n">42 days</div>
+      <div class="math-n" data-count="42" data-suffix=" days">42 days</div>
       <div class="math-l">minimum overlap window — typical internships run 10–14 weeks</div>
     </div>
   </div>
@@ -984,6 +1155,15 @@
       if (r.ok) {
         status.textContent = "✓ Submitted — we'll email you when a cycle matches.";
         form.reset();
+        if (window.confetti) {
+          window.confetti({
+            particleCount: 90,
+            spread: 70,
+            origin: { x: 0.5, y: 0.6 },
+            colors: ['#8C1515', '#B83A4B', '#53565A', '#FFFFFF', '#FBEDED'],
+            ticks: 220,
+          });
+        }
       } else {
         status.className = "form-status error";
         status.textContent = body.error || "Submission failed. Try again.";
@@ -1033,6 +1213,133 @@
       if (!isOpen) item.classList.add('open');
     });
   });
+
+  // ── Hero particles: spawn 22 drifting cardinal dots ──
+  (function () {
+    const host = document.getElementById('hero-particles');
+    if (!host) return;
+    const COUNT = 22;
+    for (let i = 0; i < COUNT; i++) {
+      const span = document.createElement('span');
+      const left = Math.random() * 100;
+      const size = 3 + Math.random() * 4;
+      const dur  = 14 + Math.random() * 14;
+      const delay = -Math.random() * dur;
+      const op = 0.18 + Math.random() * 0.35;
+      span.style.cssText = `
+        left:${left}%;
+        width:${size}px; height:${size}px;
+        animation-duration:${dur.toFixed(1)}s;
+        animation-delay:${delay.toFixed(1)}s;
+        background:rgba(140,21,21,${op.toFixed(2)});
+      `;
+      host.appendChild(span);
+    }
+  })();
+
+  // ── Animated stat counters ──
+  (function () {
+    function fmt(n, prefix, suffix, useComma) {
+      const rounded = Math.round(n);
+      const num = useComma ? rounded.toLocaleString() : rounded.toString();
+      return (prefix || '') + num + (suffix || '');
+    }
+    function tickTo(el, target, prefix, suffix, useComma, duration) {
+      const start = performance.now();
+      function frame(now) {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = fmt(target * eased, prefix, suffix, useComma);
+        if (t < 1) requestAnimationFrame(frame);
+        else el.textContent = fmt(target, prefix, suffix, useComma);
+      }
+      requestAnimationFrame(frame);
+    }
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target;
+        tickTo(
+          el,
+          parseFloat(el.dataset.count),
+          el.dataset.prefix,
+          el.dataset.suffix,
+          el.dataset.format === 'comma',
+          1700
+        );
+        obs.unobserve(el);
+      });
+    }, { threshold: 0.45 });
+    document.querySelectorAll('[data-count]').forEach(el => {
+      el.textContent = (el.dataset.prefix || '') + '0' + (el.dataset.suffix || '');
+      obs.observe(el);
+    });
+  })();
+
+  // ── Hover-tilt for cards ──
+  (function () {
+    const TILT_MAX = 6;
+    function attach(el) {
+      el.addEventListener('mousemove', (e) => {
+        const r = el.getBoundingClientRect();
+        const x = (e.clientX - r.left) / r.width  - 0.5;
+        const y = (e.clientY - r.top)  / r.height - 0.5;
+        el.style.transform =
+          `perspective(900px) rotateX(${(-y * TILT_MAX).toFixed(2)}deg) rotateY(${(x * TILT_MAX).toFixed(2)}deg) translateZ(0)`;
+      });
+      el.addEventListener('mouseleave', () => { el.style.transform = ''; });
+    }
+    document.querySelectorAll('.step, .versus-card, .math-card, .t-card').forEach(attach);
+  })();
+
+  // ── Sticky CTA bar: show when hero leaves the viewport ──
+  (function () {
+    const hero = document.getElementById('hero');
+    const sticky = document.getElementById('sticky-cta');
+    if (!hero || !sticky) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        sticky.classList.toggle('show', !e.isIntersecting);
+      });
+    }, { threshold: 0, rootMargin: '-50px 0px 0px 0px' });
+    obs.observe(hero);
+  })();
+
+  // ── Mini bilateral-vs-cycle demo: animate when scrolled into view ──
+  (function () {
+    const container = document.getElementById('versus-mini');
+    if (!container) return;
+    let played = false;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting || played) return;
+        played = true;
+        const dots = container.querySelectorAll('.vm-dot');
+        const links = container.querySelectorAll('.vm-link');
+        // Step 1: light up the bilateral pair (dots b0 + b2)
+        setTimeout(() => {
+          container.querySelector('[data-dot="b0"]').setAttribute('fill', '#8C1515');
+          container.querySelector('[data-dot="b2"]').setAttribute('fill', '#8C1515');
+          const blink = container.querySelector('[data-link="bilateral"]');
+          blink.setAttribute('stroke', '#8C1515');
+          blink.setAttribute('stroke-width', '2.5');
+        }, 250);
+        // Step 2: cycle side, first triangle
+        setTimeout(() => {
+          ['c0', 'c1', 'c2'].forEach(id => container.querySelector(`[data-dot="${id}"]`).setAttribute('fill', '#8C1515'));
+          const a = container.querySelector('[data-link="cycle-1"]');
+          a.setAttribute('stroke-width', '2.5');
+        }, 700);
+        // Step 3: second triangle
+        setTimeout(() => {
+          ['c3', 'c4'].forEach(id => container.querySelector(`[data-dot="${id}"]`).setAttribute('fill', '#8C1515'));
+          const b = container.querySelector('[data-link="cycle-2"]');
+          b.setAttribute('stroke-width', '2.5');
+        }, 1200);
+      });
+    }, { threshold: 0.4 });
+    obs.observe(container);
+  })();
 </script>
 
 <script type="importmap">
