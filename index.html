@@ -309,20 +309,65 @@
   .math-n { font-family: 'DM Serif Display', serif; font-size: 48px; color: var(--cardinal); margin-bottom: 8px; }
   .math-l { font-size: 14px; color: var(--ink-mid); line-height: 1.5; }
 
-  /* ── CITIES ── */
+  /* ── CITIES MAP ── */
   #cities { background: var(--white); }
-  #cities h2 { margin-bottom: 48px; }
-  .city-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-  .city-tag {
-    padding: 12px 24px; border-radius: 999px;
-    border: 0.5px solid var(--border);
-    font-size: 14px; color: var(--ink-mid);
-    display: flex; align-items: center; gap: 8px;
-    transition: border-color 0.2s, color 0.2s, background 0.2s;
-    cursor: default;
+  #cities h2 { margin-bottom: 8px; }
+  .cities-sub {
+    font-size: 15px; color: var(--ink-muted); margin-bottom: 32px; max-width: 540px;
   }
-  .city-tag:hover { border-color: var(--cardinal); color: var(--cardinal); background: var(--cardinal-wash); }
-  .city-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cardinal); flex-shrink: 0; }
+  .cities-map-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 920px;
+    margin: 0 auto;
+    aspect-ratio: 900 / 440;
+  }
+  .cities-map { width: 100%; height: 100%; display: block; }
+  .us-outline {
+    fill: rgba(140, 21, 21, 0.05);
+    stroke: rgba(140, 21, 21, 0.25);
+    stroke-width: 1.2;
+    stroke-linejoin: round;
+  }
+  .city-pin-group { cursor: default; }
+  .city-pin-dot {
+    fill: var(--cardinal);
+    stroke: #fff;
+    stroke-width: 2;
+    transition: transform 0.18s ease-out, fill 0.18s;
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+  .city-pin-group:hover .city-pin-dot { fill: var(--cardinal-dark); transform: scale(1.35); }
+  .city-pin-pulse {
+    fill: none;
+    stroke: var(--cardinal);
+    stroke-width: 1.8;
+    pointer-events: none;
+    animation: city-map-pulse 2.6s cubic-bezier(0.16, 0.7, 0.4, 1) infinite;
+  }
+  .city-pin-pulse.delay { animation-delay: 1.3s; }
+  @keyframes city-map-pulse {
+    0%   { r: 6; opacity: 0.55; }
+    80%  { opacity: 0; }
+    100% { r: 22; opacity: 0; }
+  }
+  .city-pin-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    fill: var(--ink);
+    pointer-events: none;
+  }
+  .city-pin-label-bg {
+    fill: rgba(255, 255, 255, 0.85);
+    stroke: rgba(140, 21, 21, 0.12);
+    stroke-width: 1;
+    pointer-events: none;
+  }
+  @media (max-width: 760px) {
+    .city-pin-label { font-size: 13px; }
+  }
 
   /* ── TESTIMONIALS ── */
   #testimonials { background: var(--sand); }
@@ -463,6 +508,26 @@
     100% { transform: translateY(-110vh) translateX(40px); opacity: 0; }
   }
 
+  /* ── TYPEWRITER on H1 ── */
+  .tw-cursor {
+    display: inline-block;
+    width: 4px;
+    height: 0.85em;
+    background: var(--cardinal);
+    margin-left: 4px;
+    vertical-align: -0.05em;
+    animation: tw-blink 0.85s step-end infinite;
+    border-radius: 1px;
+  }
+  @keyframes tw-blink {
+    0%, 50%   { opacity: 1; }
+    50.01%, 100% { opacity: 0; }
+  }
+  .tw-cursor.done {
+    animation: tw-blink 0.85s step-end 6;
+    animation-fill-mode: forwards;
+  }
+
   /* ── SIGNATURE UNDERLINE under H1 italic emphasis ── */
   .h1-signature {
     display: block; max-width: 100%; height: 18px;
@@ -475,7 +540,7 @@
     stroke-linecap: round;
     stroke-dasharray: 600;
     stroke-dashoffset: 600;
-    animation: draw-sig 1.6s 0.6s ease-out forwards;
+    animation: draw-sig 1.4s 3.4s ease-out forwards;
   }
   @keyframes draw-sig {
     to { stroke-dashoffset: 0; }
@@ -635,8 +700,8 @@
       <span class="eyebrow-dot"></span>
       Summer 2026 pilot open
     </p>
-    <h1 class="fade-up delay-2">
-      Trade your apartment,<br><em>not your savings.</em>
+    <h1 class="fade-up delay-2" id="hero-h1" aria-label="Trade your apartment, not your savings.">
+      <span class="tw-line tw-line-1"></span><br><em class="tw-line tw-line-2"></em><span class="tw-cursor" aria-hidden="true"></span>
     </h1>
     <svg class="h1-signature" viewBox="0 0 360 18" preserveAspectRatio="none" aria-hidden="true">
       <path d="M 4 14 C 60 4, 120 4, 180 12 C 240 18, 300 6, 356 9" />
@@ -861,16 +926,103 @@
 <section id="cities">
   <p class="label">Network cities</p>
   <h2>Where interns are heading this summer</h2>
-  <div class="city-grid" style="margin-top:48px">
-    <div class="city-tag"><span class="city-dot"></span>San Francisco</div>
-    <div class="city-tag"><span class="city-dot"></span>New York City</div>
-    <div class="city-tag"><span class="city-dot"></span>Boston</div>
-    <div class="city-tag"><span class="city-dot"></span>Chicago</div>
-    <div class="city-tag"><span class="city-dot"></span>Seattle</div>
-    <div class="city-tag"><span class="city-dot"></span>Los Angeles</div>
-    <div class="city-tag"><span class="city-dot"></span>Austin</div>
-    <div class="city-tag"><span class="city-dot"></span>Miami</div>
-    <div class="city-tag"><span class="city-dot"></span>Washington D.C.</div>
+  <p class="cities-sub">Nine metros — coast to coast — cover roughly 80% of MBA and grad summer intern flows.</p>
+
+  <div class="cities-map-wrap">
+    <svg class="cities-map" viewBox="0 0 900 440" xmlns="http://www.w3.org/2000/svg" aria-label="Map of CycleStay network cities across the contiguous United States">
+      <!-- Stylized lower-48 outline (low-poly approximation, not geographically exact) -->
+      <path class="us-outline" d="M 8 24
+        L 460 22
+        L 870 56
+        L 836 132
+        L 778 156
+        L 732 188
+        L 750 240
+        L 720 286
+        L 692 420
+        L 600 410
+        L 534 360
+        L 400 392
+        L 322 358
+        L 218 308
+        L 122 290
+        L 100 270
+        L 30 208
+        Z" />
+
+      <!-- City pins with labels. Coordinates derived from lon/lat → SVG mapping (lon -125..-66 → x 0..900, lat 24..50 → y 0..440). -->
+      <g class="city-pin-group">
+        <circle class="city-pin-pulse" cx="40" cy="206" r="6"></circle>
+        <circle class="city-pin-pulse delay" cx="40" cy="206" r="6"></circle>
+        <circle class="city-pin-dot" cx="40" cy="206" r="6"></circle>
+        <rect class="city-pin-label-bg" x="52" y="196" width="118" height="20" rx="4"></rect>
+        <text class="city-pin-label" x="111" y="210" text-anchor="middle">San Francisco</text>
+      </g>
+
+      <g class="city-pin-group">
+        <circle class="city-pin-pulse" cx="42" cy="41" r="6"></circle>
+        <circle class="city-pin-pulse delay" cx="42" cy="41" r="6"></circle>
+        <circle class="city-pin-dot" cx="42" cy="41" r="6"></circle>
+        <rect class="city-pin-label-bg" x="52" y="31" width="68" height="20" rx="4"></rect>
+        <text class="city-pin-label" x="86" y="45" text-anchor="middle">Seattle</text>
+      </g>
+
+      <g class="city-pin-group">
+        <circle class="city-pin-pulse" cx="103" cy="269" r="6"></circle>
+        <circle class="city-pin-pulse delay" cx="103" cy="269" r="6"></circle>
+        <circle class="city-pin-dot" cx="103" cy="269" r="6"></circle>
+        <rect class="city-pin-label-bg" x="115" y="259" width="108" height="20" rx="4"></rect>
+        <text class="city-pin-label" x="169" y="273" text-anchor="middle">Los Angeles</text>
+      </g>
+
+      <g class="city-pin-group">
+        <circle class="city-pin-pulse" cx="416" cy="333" r="6"></circle>
+        <circle class="city-pin-pulse delay" cx="416" cy="333" r="6"></circle>
+        <circle class="city-pin-dot" cx="416" cy="333" r="6"></circle>
+        <rect class="city-pin-label-bg" x="428" y="323" width="60" height="20" rx="4"></rect>
+        <text class="city-pin-label" x="458" y="337" text-anchor="middle">Austin</text>
+      </g>
+
+      <g class="city-pin-group">
+        <circle class="city-pin-pulse" cx="571" cy="137" r="6"></circle>
+        <circle class="city-pin-pulse delay" cx="571" cy="137" r="6"></circle>
+        <circle class="city-pin-dot" cx="571" cy="137" r="6"></circle>
+        <rect class="city-pin-label-bg" x="583" y="127" width="70" height="20" rx="4"></rect>
+        <text class="city-pin-label" x="618" y="141" text-anchor="middle">Chicago</text>
+      </g>
+
+      <g class="city-pin-group">
+        <circle class="city-pin-pulse" cx="683" cy="409" r="6"></circle>
+        <circle class="city-pin-pulse delay" cx="683" cy="409" r="6"></circle>
+        <circle class="city-pin-dot" cx="683" cy="409" r="6"></circle>
+        <rect class="city-pin-label-bg" x="617" y="385" width="60" height="20" rx="4"></rect>
+        <text class="city-pin-label" x="647" y="399" text-anchor="middle">Miami</text>
+      </g>
+
+      <g class="city-pin-group">
+        <circle class="city-pin-pulse" cx="732" cy="188" r="6"></circle>
+        <circle class="city-pin-pulse delay" cx="732" cy="188" r="6"></circle>
+        <circle class="city-pin-dot" cx="732" cy="188" r="6"></circle>
+        <rect class="city-pin-label-bg" x="744" y="178" width="116" height="20" rx="4"></rect>
+        <text class="city-pin-label" x="802" y="192" text-anchor="middle">Washington D.C.</text>
+      </g>
+
+      <g class="city-pin-group">
+        <circle class="city-pin-pulse" cx="778" cy="157" r="6"></circle>
+        <circle class="city-pin-pulse delay" cx="778" cy="157" r="6"></circle>
+        <circle class="city-pin-dot" cx="778" cy="157" r="6"></circle>
+        <rect class="city-pin-label-bg" x="755" y="135" width="100" height="20" rx="4"></rect>
+        <text class="city-pin-label" x="805" y="149" text-anchor="middle">New York City</text>
+      </g>
+
+      <g class="city-pin-group">
+        <circle class="city-pin-pulse" cx="822" cy="129" r="6"></circle>
+        <circle class="city-pin-pulse delay" cx="822" cy="129" r="6"></circle>
+        <circle class="city-pin-dot" cx="822" cy="129" r="6"></circle>
+        <rect class="city-pin-label-bg" x="775" y="107" width="60" height="20" rx="4"></rect>
+        <text class="city-pin-label" x="805" y="121" text-anchor="middle">Boston</text>
+      </g>
+    </svg>
   </div>
 </section>
 
@@ -1213,6 +1365,37 @@
       if (!isOpen) item.classList.add('open');
     });
   });
+
+  // ── Typewriter on hero H1 ──
+  (function () {
+    const line1El = document.querySelector('.tw-line-1');
+    const line2El = document.querySelector('.tw-line-2');
+    const cursor  = document.querySelector('.tw-cursor');
+    if (!line1El || !line2El) return;
+    const PHASE_1 = 'Trade your apartment,';
+    const PHASE_2 = 'not your savings.';
+    const CHAR_MS = 55;
+    let i = 0, j = 0;
+    function typeLine1() {
+      if (i < PHASE_1.length) {
+        line1El.textContent += PHASE_1[i++];
+        setTimeout(typeLine1, CHAR_MS);
+      } else {
+        setTimeout(typeLine2, 280);
+      }
+    }
+    function typeLine2() {
+      if (j < PHASE_2.length) {
+        line2El.textContent += PHASE_2[j++];
+        setTimeout(typeLine2, CHAR_MS);
+      } else if (cursor) {
+        // Stop blinking after a beat so the page feels settled
+        setTimeout(() => { cursor.style.display = 'none'; }, 4500);
+      }
+    }
+    // Wait for the H1 fade-up (delay-2 + 0.7s anim ≈ 0.92s) before typing
+    setTimeout(typeLine1, 800);
+  })();
 
   // ── Hero particles: spawn 22 drifting cardinal dots ──
   (function () {
