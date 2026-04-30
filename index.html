@@ -149,6 +149,80 @@
   }
   .arc-flow { animation: dash-flow 3s linear infinite; }
 
+  /* ── 3D HERO ── */
+  .hero-diagram { position: relative; }
+  #hero-3d { display: block; max-width: 420px; margin: 0 auto; }
+  .hero-3d-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    max-width: 420px;
+    margin: 0 auto;
+    aspect-ratio: 1;
+  }
+  .hero-3d-overlay[hidden] { display: none; }
+  .h3d-center {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 0.5px solid rgba(26,26,24,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(140, 21, 21, 0.08);
+  }
+  .h3d-center-top {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--cardinal);
+    line-height: 1.1;
+  }
+  .h3d-center-bot {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 2px;
+  }
+  .h3d-label {
+    position: absolute;
+    transform: translate(-50%, 0);
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    pointer-events: none;
+    transition: opacity 0.15s;
+  }
+  .h3d-name {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .h3d-label[data-node="SF"]  .h3d-name { color: var(--cardinal); }
+  .h3d-label[data-node="NYC"] .h3d-name { color: var(--cardinal-light); }
+  .h3d-label[data-node="ATX"] .h3d-name { color: var(--cool-grey); }
+  .h3d-sub {
+    font-size: 10px;
+    color: var(--ink-muted);
+  }
+  .h3d-hint {
+    position: absolute;
+    left: 50%;
+    bottom: -18px;
+    transform: translateX(-50%);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    color: var(--ink-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.8;
+    transition: opacity 0.4s;
+  }
+  .h3d-hint.fade { opacity: 0; }
+
   /* ── SECTIONS ── */
   section { padding: 100px 60px; }
 
@@ -454,8 +528,19 @@
     </div>
   </div>
 
-  <div class="hero-diagram fade-up delay-3">
-    <svg viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
+  <div class="hero-diagram fade-up delay-3" id="hero-diagram">
+    <canvas id="hero-3d" style="display:none; width:100%; aspect-ratio:1; cursor:grab"></canvas>
+    <div id="hero-3d-overlay" class="hero-3d-overlay" hidden>
+      <div class="h3d-center">
+        <div class="h3d-center-top">3-way</div>
+        <div class="h3d-center-bot">cycle match</div>
+      </div>
+      <div class="h3d-label" data-node="SF"><div class="h3d-name">SF</div><div class="h3d-sub">Alex · 2BR</div></div>
+      <div class="h3d-label" data-node="NYC"><div class="h3d-name">NYC</div><div class="h3d-sub">Priya · 1BR</div></div>
+      <div class="h3d-label" data-node="ATX"><div class="h3d-name">ATX</div><div class="h3d-sub">Marcus · Studio</div></div>
+      <div class="h3d-hint" id="h3d-hint">Click and drag to rotate</div>
+    </div>
+    <svg id="hero-3d-fallback" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <marker id="arrow1" markerWidth="10" markerHeight="10" refX="7" refY="3.5" orient="auto">
           <path d="M0,0 L0,7 L10,3.5 z" fill="#8C1515" opacity="0.75"/>
@@ -881,6 +966,165 @@
       if (!isOpen) item.classList.add('open');
     });
   });
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+  // 3D hero: replaces the SVG once the scene loads. Falls back to SVG silently on any error.
+  (async () => {
+    const canvas = document.getElementById('hero-3d');
+    const overlay = document.getElementById('hero-3d-overlay');
+    const fallback = document.getElementById('hero-3d-fallback');
+    const hint = document.getElementById('h3d-hint');
+    if (!canvas || !overlay) return;
+
+    let THREE, OrbitControls;
+    try {
+      THREE = await import('three');
+      OrbitControls = (await import('three/addons/controls/OrbitControls.js')).OrbitControls;
+    } catch (e) {
+      console.warn('hero 3d: failed to load three.js, keeping SVG fallback', e);
+      return;
+    }
+
+    // Show canvas, hide SVG.
+    canvas.style.display = 'block';
+    overlay.removeAttribute('hidden');
+    if (fallback) fallback.style.display = 'none';
+
+    const scene = new THREE.Scene();
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    camera.position.set(0, 1.4, 5);
+    camera.lookAt(0, 0, 0);
+
+    function resize() {
+      const w = canvas.clientWidth || 420;
+      renderer.setSize(w, w, false);
+      camera.aspect = 1;
+      camera.updateProjectionMatrix();
+    }
+    resize();
+    new ResizeObserver(resize).observe(canvas);
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    const key = new THREE.DirectionalLight(0xffffff, 0.95);
+    key.position.set(2, 4, 3);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xffd0d0, 0.25);
+    fill.position.set(-3, 1, -2);
+    scene.add(fill);
+
+    // Triangle vertices (XY plane, z=0). Slight elevation difference for depth.
+    const NODES = [
+      { id: 'SF',  pos: new THREE.Vector3( 0,    1.05,  0.35), color: 0x8C1515 },
+      { id: 'NYC', pos: new THREE.Vector3( 1.0, -0.55, -0.10), color: 0xB83A4B },
+      { id: 'ATX', pos: new THREE.Vector3(-1.0, -0.55, -0.10), color: 0x53565A },
+    ];
+
+    const sphereGeom = new THREE.SphereGeometry(0.16, 40, 40);
+    const haloGeom   = new THREE.SphereGeometry(0.20, 32, 32);
+    NODES.forEach(n => {
+      const sphere = new THREE.Mesh(
+        sphereGeom,
+        new THREE.MeshStandardMaterial({ color: n.color, metalness: 0.55, roughness: 0.32 })
+      );
+      sphere.position.copy(n.pos);
+      scene.add(sphere);
+      // White halo behind to keep the colored core readable on the cream background
+      const halo = new THREE.Mesh(
+        haloGeom,
+        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55 })
+      );
+      halo.position.copy(n.pos);
+      scene.add(halo);
+      n.mesh = sphere;
+    });
+
+    // Curved tubes connecting the nodes (SF→NYC, NYC→ATX, ATX→SF)
+    function arcCurve(a, b, bow = 0.45) {
+      const mid = a.clone().add(b).multiplyScalar(0.5);
+      // Bow outward from origin so the arc bulges away from center
+      const outward = mid.clone().normalize().multiplyScalar(bow);
+      mid.add(outward);
+      // Lift slightly in z so arcs separate visually
+      mid.z += 0.25;
+      return new THREE.CatmullRomCurve3([a.clone(), mid, b.clone()]);
+    }
+    const PAIRS = [[0,1],[1,2],[2,0]];
+    PAIRS.forEach(([i, j]) => {
+      const curve = arcCurve(NODES[i].pos, NODES[j].pos);
+      const tube = new THREE.Mesh(
+        new THREE.TubeGeometry(curve, 80, 0.018, 12, false),
+        new THREE.MeshStandardMaterial({
+          color: NODES[i].color,
+          emissive: NODES[i].color,
+          emissiveIntensity: 0.12,
+          metalness: 0.4,
+          roughness: 0.55,
+        })
+      );
+      scene.add(tube);
+    });
+
+    // OrbitControls
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enablePan = false;
+    controls.enableZoom = false;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 0.9;
+
+    // Switch from auto-rotate to manual on first user interaction
+    function userTakeover() {
+      controls.autoRotate = false;
+      hint?.classList.add('fade');
+      canvas.removeEventListener('pointerdown', userTakeover);
+    }
+    canvas.addEventListener('pointerdown', userTakeover);
+
+    // Project node world positions to canvas pixel coords each frame to position HTML labels
+    const labels = {
+      SF:  document.querySelector('.h3d-label[data-node="SF"]'),
+      NYC: document.querySelector('.h3d-label[data-node="NYC"]'),
+      ATX: document.querySelector('.h3d-label[data-node="ATX"]'),
+    };
+    const tmp = new THREE.Vector3();
+    function placeLabels() {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width, h = rect.height;
+      NODES.forEach(n => {
+        tmp.copy(n.pos).project(camera);
+        const x = (tmp.x * 0.5 + 0.5) * w;
+        const y = (-tmp.y * 0.5 + 0.5) * h;
+        const el = labels[n.id];
+        if (!el) return;
+        el.style.left = x + 'px';
+        el.style.top  = (y + 28) + 'px'; // sit just below the sphere
+        // Fade labels when their node is on the far side of the camera
+        el.style.opacity = tmp.z < 1 ? '1' : '0';
+      });
+    }
+
+    function loop() {
+      controls.update();
+      placeLabels();
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    }
+    loop();
+  })();
 </script>
 </body>
 </html>
