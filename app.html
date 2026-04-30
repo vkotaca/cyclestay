@@ -90,13 +90,19 @@
     <button id="intro-hide" class="intro-close" title="Hide forever">&times;</button>
     <h2>What you&rsquo;re looking at</h2>
     <p>
-      This is the matching engine running over a pool of submissions
-      from real students plus a baseline cohort. It builds a compatibility
-      graph, finds <span class="glossary" data-tip="A closed chain of 2–4 students whose moves form a loop (e.g., SF → NYC → Austin → SF). Everyone trades keys; no cash changes hands between participants.">cycles</span>
+      In production, the matcher runs <b>once</b> &mdash; after a 6-week
+      submission window closes and a critical mass of student listings
+      has accumulated. This admin then operates over the full pool to
+      find <span class="glossary" data-tip="A closed chain of 2–4 students whose moves form a loop (e.g., SF → NYC → Austin → SF). Everyone trades keys; no cash changes hands between participants.">cycles</span>
       &mdash; multi-way swaps where 2&ndash;4 students trade apartments &mdash;
-      and falls back to <span class="glossary" data-tip="A 1-for-1 pairing where two students directly swap places. The simplest match, and the only kind most other platforms can find.">bilateral</span>
-      pairs for anyone who couldn&rsquo;t fit a cycle. Tweak the parameters
-      and the run updates automatically.
+      with <span class="glossary" data-tip="A 1-for-1 pairing where two students directly swap places. The simplest match, and the only kind most other platforms can find.">bilateral</span>
+      pairs as the fallback for anyone who doesn&rsquo;t fit a cycle.
+    </p>
+    <p style="margin-top:10px">
+      For the demo, we re-run live as you tweak parameters so you can
+      see the engine behave under different conditions; live submissions
+      from the marketing site are mixed into a baseline cohort to
+      simulate the density of a real submission round.
     </p>
   </div>
 
