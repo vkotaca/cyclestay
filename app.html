@@ -166,7 +166,7 @@
     <div class="actions">
       <button id="run-eval">Run evaluation</button>
     </div>
-    <div id="eval-results"></div>
+    <div id="eval-results"><div class="muted" style="padding:14px 0">Click <b>Run evaluation</b> above to run the three scenarios.</div></div>
   </div>
 
   <div class="panel">
@@ -176,7 +176,7 @@
       <br><br>
       We randomly remove 10% of the students who got matched, then check each affected cycle: can the matcher swap in a substitute from the unmatched pool, or does the chain collapse and force everyone in it back to Airbnb? The repair rate is the single most important number for a real launch — if it's high, the network is forgiving; if it's low, you need a deeper standby pool or a stricter commitment mechanism.
     </p>
-    <div id="dropout-results"></div>
+    <div id="dropout-results"><div class="muted" style="padding:14px 0">Click <b>Run evaluation</b> above to populate this section — dropout simulation runs against the same three scenarios.</div></div>
   </div>
 
   <div class="panel">
@@ -190,7 +190,7 @@
       <button id="run-multiseed">Run 20-seed benchmark</button>
       <span id="multiseed-status" class="muted"></span>
     </div>
-    <div id="multiseed-bars"></div>
+    <div id="multiseed-bars"><div class="muted" style="padding:14px 0">Click <b>Run 20-seed benchmark</b> above to populate. Takes ~5 seconds.</div></div>
   </div>
 
   <div class="panel">
@@ -204,7 +204,7 @@
       <button id="run-sensitivity">Run sensitivity sweep</button>
       <span id="sensitivity-status" class="muted"></span>
     </div>
-    <div id="sensitivity-grid"></div>
+    <div id="sensitivity-grid"><div class="muted" style="padding:14px 0">Click <b>Run sensitivity sweep</b> above to populate. Sweeps 30 parameter combinations; takes ~3 seconds.</div></div>
   </div>
 </section>
 
