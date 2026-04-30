@@ -930,25 +930,20 @@
 
   <div class="cities-map-wrap">
     <svg class="cities-map" viewBox="0 0 900 440" xmlns="http://www.w3.org/2000/svg" aria-label="Map of CycleStay network cities across the contiguous United States">
-      <!-- Stylized lower-48 outline (low-poly approximation, not geographically exact) -->
-      <path class="us-outline" d="M 8 24
-        L 460 22
-        L 870 56
-        L 836 132
-        L 778 156
-        L 732 188
-        L 750 240
-        L 720 286
-        L 692 420
-        L 600 410
-        L 534 360
-        L 400 392
-        L 322 358
-        L 218 308
-        L 122 290
-        L 100 270
-        L 30 208
-        Z" />
+      <!-- Lower-48 outline, ~50-vertex equirectangular projection (lon -125..-66 → x 0..900, lat 24..50 → y 0..440). -->
+      <path class="us-outline" d="M 5 25
+        L 30 17 L 90 14 L 180 14 L 272 14 L 360 14 L 458 11
+        L 462 26 L 490 32 L 528 38 L 568 50 L 600 56 L 625 75
+        L 635 95 L 645 118 L 685 122 L 720 100 L 760 86
+        L 820 78 L 855 51 L 880 95 L 855 125 L 825 130
+        L 805 150 L 780 158 L 763 178 L 750 200 L 745 232
+        L 737 258 L 720 278 L 700 295 L 692 318 L 700 350
+        L 692 410 L 678 425 L 670 395 L 645 360 L 615 343
+        L 575 340 L 540 345 L 510 357 L 478 368 L 445 372
+        L 420 405 L 395 388 L 365 372 L 330 358 L 298 340
+        L 270 318 L 232 318 L 195 318 L 160 308 L 125 298
+        L 100 280 L 80 252 L 60 222 L 35 195 L 18 160
+        L 10 110 L 5 50 Z" />
 
       <!-- City pins with labels. Coordinates derived from lon/lat → SVG mapping (lon -125..-66 → x 0..900, lat 24..50 → y 0..440). -->
       <g class="city-pin-group">
