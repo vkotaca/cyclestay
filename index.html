@@ -1389,11 +1389,12 @@
       });
 
       const nation = window.topojson.feature(us, us.objects.nation);
-      const pathGen = window.d3.geoPath();
-      const nationD = pathGen(nation);
 
-      // us-atlas pre-projects to viewBox 0 0 975 610 with Albers USA at scale=1300, translate=[487.5, 305].
+      // us-atlas data is in raw lon/lat — project through Albers USA at the
+      // standard scale/translate that fits the 975×610 viewBox.
       const projection = window.d3.geoAlbersUsa().scale(1300).translate([487.5, 305]);
+      const pathGen = window.d3.geoPath(projection);
+      const nationD = pathGen(nation);
 
       const cities = [
         { name: 'San Francisco',   short: 'SF',      lonlat: [-122.4, 37.8], offsetX:  74, offsetY:   4 },
