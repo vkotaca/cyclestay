@@ -105,11 +105,6 @@
       <label>Min date overlap (days) <span class="tip" data-tip="Reject matches where the two students' trips overlap fewer than this many days. 42 = six weeks, filters out half-summer mismatches. Lower = more matches but some will be low-quality.">&#9432;</span><input id="minov" type="number" value="42" min="0" max="90" /></label>
       <label class="checkbox"><input id="optimize" type="checkbox" /> Use near-optimal selection (local search)<span class="tip" data-tip="When unchecked: greedy selector (fast). When checked: runs 60 randomized restarts to find a better combination of cycles. Gains ~1-3pp match rate at the cost of ~500ms.">&#9432;</span></label>
     </div>
-    <div class="actions">
-      <button id="share-link" class="btn-secondary">Copy shareable link</button>
-      <button id="export-png" class="btn-secondary">Export map PNG</button>
-      <button id="export-md" class="btn-secondary">Export summary</button>
-    </div>
     <div id="summary" class="muted" style="margin-top:10px"></div>
   </div>
 
@@ -239,6 +234,6 @@
 <script src="matcher.js?v=4"></script>
 <script src="viz.js?v=3"></script>
 <script src="admin.js?v=1"></script>
-<script src="app.js?v=11"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>
