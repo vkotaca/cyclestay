@@ -654,6 +654,36 @@ tr:hover td { background: var(--surface-2); }
 
 /* Visualize */
 .map-svg { width: 100%; height: auto; display: block; border: 1px solid var(--border); border-radius: 3px; }
+
+/* Pulsating matched flow arcs — energy moving along each arc */
+.flow-arc-matched {
+  stroke-dasharray: 14 10;
+  opacity: 0.78;
+  animation: flow-arc-march 2.6s linear infinite, flow-arc-breathe 2.6s ease-in-out infinite;
+}
+@keyframes flow-arc-march {
+  to { stroke-dashoffset: -48; }
+}
+@keyframes flow-arc-breathe {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 0.92; }
+}
+
+/* Pulsing rings around each city pin */
+.city-pulse {
+  fill: none;
+  stroke: #8C1515;
+  stroke-width: 2;
+  pointer-events: none;
+  animation: city-pulse 2.4s cubic-bezier(0.16, 0.7, 0.4, 1) infinite;
+  transform-origin: center;
+}
+.city-pulse.delay { animation-delay: 1.2s; }
+@keyframes city-pulse {
+  0%   { r: 7;  opacity: 0.55; }
+  80%  { opacity: 0; }
+  100% { r: 26; opacity: 0; }
+}
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .two-col > div { min-width: 0; }
 .two-col h2 { margin-top: 0; }

@@ -59,13 +59,20 @@ function renderMap(container, result, opts = {}) {
     const pa = cityXY(a, WIDTH, HEIGHT), pb = cityXY(b, WIDTH, HEIGHT);
     svg += `<path d="${arcPath(pa.x, pa.y, pb.x, pb.y)}" fill="none" stroke="#C8C8C0" stroke-width="${sw(count)}" opacity="0.5" />`;
   }
+  let arcIdx = 0;
   for (const [k, count] of flowMatched) {
     const [a, b] = k.split("|");
     const pa = cityXY(a, WIDTH, HEIGHT), pb = cityXY(b, WIDTH, HEIGHT);
-    svg += `<path d="${arcPath(pa.x, pa.y, pb.x, pb.y)}" fill="none" stroke="#8C1515" stroke-width="${sw(count)}" opacity="0.75" />`;
+    // Stagger animation start so arcs don't sync into a single pulse
+    const delay = (arcIdx * 0.31) % 3;
+    arcIdx++;
+    svg += `<path d="${arcPath(pa.x, pa.y, pb.x, pb.y)}" fill="none" stroke="#8C1515" stroke-width="${sw(count)}" stroke-linecap="round" class="flow-arc-matched" style="animation-delay:-${delay.toFixed(2)}s" />`;
   }
   for (const city of Object.keys(CITY_COORDS)) {
     const { x, y } = cityXY(city, WIDTH, HEIGHT);
+    // Two pulse rings staggered so the heartbeat is continuous, not clipped
+    svg += `<circle class="city-pulse" cx="${x}" cy="${y}" r="7" />`;
+    svg += `<circle class="city-pulse delay" cx="${x}" cy="${y}" r="7" />`;
     svg += `<circle class="city-pin" data-city="${city}" cx="${x}" cy="${y}" r="7" fill="#820000" stroke="#fff" stroke-width="2" style="cursor:pointer"/>`;
     svg += `<text x="${x}" y="${y - 12}" text-anchor="middle" font-family="Source Sans Pro, sans-serif" font-size="12" font-weight="700" fill="#2E2D29" pointer-events="none">${city}</text>`;
   }
